@@ -5,7 +5,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A0FBD3A8-6963-F349-1F1F-233A1B307036}</ProjectGuid>
+    <ProjectGuid>{4B794E69-F056-5129-C6EC-42574E507041}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Assembly-CSharp</AssemblyName>
     <FileAlignment>512</FileAlignment>
@@ -69,9 +69,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="FPS 2.CSharp.Plugins.csproj">
-      <Project>{3C3E2C51-15B8-A1C8-EEDC-77244F63D9D4}</Project>
-      <Name>FPS 2.CSharp.Plugins</Name>
+    <ProjectReference Include="PewPew.CSharp.Plugins.csproj">
+      <Project>{3AEDF4D3-0C02-6D04-EB14-9C4358787E6D}</Project>
+      <Name>PewPew.CSharp.Plugins</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
