@@ -107,7 +107,7 @@ public class Initalize : Photon.MonoBehaviour
 
     public void Update()
     {
-        if (Input.GetKeyDown(KeyCode.L))
+        if (Input.GetKey(KeyCode.L) && photonView.isMine)
             Die();
 
         if (photonView.isMine)
@@ -184,12 +184,6 @@ public class Initalize : Photon.MonoBehaviour
     }
 
     [PunRPC]
-    public void RestartRoundRPC()
-    {
-        NM.roundEnded = true;
-    }
-
-    [PunRPC]
     public void PewPew()
     {
         PS.Play();
@@ -216,25 +210,28 @@ public class Initalize : Photon.MonoBehaviour
             GetComponent<Rigidbody>().AddForceAtPosition(body.transform.forward * 500, forcepos);
             return;
         }
-
-        SetKill(true);
-        GetComponent<Rigidbody>().AddForceAtPosition(body.transform.forward * 500, forcepos);
-        //GetComponentInChildren<Animator>().enabled = true;
-        endRoundTimer = 5;
-        NM.pv.RPC(NM.playerNumber == 0 ? "P2Up" : "P1Up", PhotonTargets.All, null);
-        died = true;
+        DieInner();
     }
 
     public void Die()
     {
+        GetComponent<Rigidbody>().AddForce(body.transform.forward * -700);
+        DieInner();
+    }
+
+    private void DieInner()
+    {
         if (died)
             return;
 
+        if (!NM.roundEnded && photonView.isMine)
+        {
+            NM.shotcaller = true;
+            NM.pv.RPC(NM.playerNumber == 0 ? "P2Up" : "P1Up", PhotonTargets.All, null);
+            endRoundTimer = 5;
+        }
+
         SetKill(true);
-        GetComponent<Rigidbody>().AddForce(body.transform.forward * -700);
-        //GetComponentInChildren<Animator>().enabled = true;
-        endRoundTimer = 5;
-        NM.pv.RPC(NM.playerNumber == 0 ? "P2Up" : "P1Up", PhotonTargets.All, null);
         died = true;
     }
 
@@ -248,7 +245,7 @@ public class Initalize : Photon.MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag == "OuttaBounds" && !died)
+        if (other.tag == "OuttaBounds" && !died && photonView.isMine)
         {
             Die();
             NM.pv.RPC("SendChatMessage", PhotonTargets.All, PhotonNetwork.player.name + " fell off the map like an idiot.");

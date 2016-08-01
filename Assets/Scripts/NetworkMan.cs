@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
+using Random = UnityEngine.Random;
 
 public class NetworkMan : Photon.MonoBehaviour
 {
@@ -20,8 +22,6 @@ public class NetworkMan : Photon.MonoBehaviour
     public int playerNumber;
 
     public Vector2 Score = new Vector2(0, 0);
-
-    public bool roundEnded = false;
 
     public Text ScoreText;
 
@@ -58,6 +58,15 @@ public class NetworkMan : Photon.MonoBehaviour
     private int[] forwards = { 0, 10, 19 };
     private float randomConsecMod;
 
+    private Text FXList;
+    private string FXString;
+    private Text FXCountdown;
+    private float newRoundTimer;
+    private bool playerLocked;
+
+    public bool roundEnded;
+    public bool shotcaller;
+
     //FX
     private const int FxCount = 4;
 
@@ -73,6 +82,8 @@ public class NetworkMan : Photon.MonoBehaviour
         PhotonNetwork.logLevel = PhotonLogLevel.Informational;
         PhotonNetwork.ConnectUsingSettings("0.1");
         pv = GetComponent<PhotonView>();
+        FXList = transform.Find("/UI Groups/Main UI/FX Text").GetComponent<Text>();
+        FXCountdown = transform.Find("/UI Groups/Main UI/Round Countdown").GetComponent<Text>();
     }
 
     // Update is called once per frame
@@ -128,6 +139,9 @@ public class NetworkMan : Photon.MonoBehaviour
             string toSend = chatMessage.text;
             string color;
 
+            if (toSend == "")
+                return;
+
             if (playerNumber == 0)
                 color = ColToHex(P1Col);
             else
@@ -139,6 +153,21 @@ public class NetworkMan : Photon.MonoBehaviour
             pv.RPC("SendChatMessage", PhotonTargets.All, toSend);
             chatMessage.text = "";
             chatMessage.Select();
+        }
+
+        if (newRoundTimer > 0 && playerLocked)
+        {
+            newRoundTimer -= Time.deltaTime;
+            FXCountdown.text = newRoundTimer.ToString("#");
+        }
+        else if (newRoundTimer <= 0.0f && playerLocked)
+        {
+            LockPlayer(false);
+            FXString = "";
+            FXList.text = "";
+            FXCountdown.text = "";
+            shotcaller = false;
+            roundEnded = false;
         }
     }
 
@@ -201,22 +230,29 @@ public class NetworkMan : Photon.MonoBehaviour
     public void RestartRound()
     {
         WinText.text = "";
-        player.GetComponent<Initalize>().health = 2;
+        player.GetComponent<Initalize>().health = 4;
         player.GetComponentInChildren<ShootyShooty>().inClip = 10;
 
         player.GetComponent<Initalize>().FPcam.rotation = spawn.rotation;
         player.transform.position = spawn.position;
         player.transform.rotation = spawn.rotation;
 
-        ResetFX();
-        ChooseFX();
+        LockPlayer(true);
+        newRoundTimer = 3;
 
-        roundEnded = false;
+        if (shotcaller)
+        {
+            ResetFX();
+            ChooseFX();
+            pv.RPC("FinishedCallingShots", PhotonTargets.Others, FXString);
+        }
+        FXList.text = FXString;
     }
 
     [PunRPC]
     public void P1Up()
     {
+        roundEnded = true;
         WinText.text = "<color=" + ColToHex(P1Col) + ">Red Wins!</color>";
         Score[0] += 1;
     }
@@ -224,6 +260,7 @@ public class NetworkMan : Photon.MonoBehaviour
     [PunRPC]
     public void P2Up()
     {
+        roundEnded = true;
         WinText.text = "<color=" + ColToHex(P2Col) + ">Blue Wins!</color>";
         Score[1] += 1;
     }
@@ -278,6 +315,13 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         foreach (GameObject obj in everything)
             obj.SetActive(true);
+    }
+
+    [PunRPC]
+    public void FinishedCallingShots(string f)
+    {
+        FXString = f;
+        FXList.text = FXString;
     }
 
     private string ColToHex(Color col)
@@ -336,18 +380,33 @@ public class NetworkMan : Photon.MonoBehaviour
 
     private void ChooseFX()
     {
-        int numFX = Random.Range(1, 3);
+        int numFX;
+        float v = Random.value;
+
+        if (v < 0.1f)
+            numFX = 0;
+        else if (v < 0.5)
+            numFX = 1;
+        else if (v < 0.8)
+            numFX = 2;
+        else
+            numFX = 3;
+
         List<int> pastIndexes = new List<int>();
 
         while (pastIndexes.Count != numFX)
         {
-            int FXindex = Random.Range(0, FxCount - 1);
+            int FXindex = Random.Range(0, FxCount);
             if (pastIndexes.Contains(FXindex))
                 continue;
 
             pastIndexes.Add(FXindex);
             flipFX(FXindex, true);
+            FXString += GetFXText(FXindex) + " + ";
         }
+
+        char[] trimings = { '+', ' ' };
+        FXString = FXString.TrimEnd(trimings);
     }
 
     private void flipFX(int index, bool flip)
@@ -385,5 +444,39 @@ public class NetworkMan : Photon.MonoBehaviour
         {
             flipFX(i, false);
         }
+    }
+
+    private string GetFXText(int index)
+    {
+        switch (index)
+        {
+            case 0:
+                return "The Moon";
+                break;
+
+            case 1:
+                return "Jump gun"; //Weird gun?
+                break;
+
+            case 2:
+                return "Alcohol";
+                break;
+
+            case 3:
+                return "God Bullets";
+                break;
+
+            default:
+                Debug.Log("FXString Out of bounds");
+                return "";
+                break;
+        }
+    }
+
+    public void LockPlayer(bool l)
+    {
+        playerLocked = l;
+        player.GetComponent<FirstPersonController>().allowInput = !l;
+        player.GetComponentInChildren<ShootyShooty>().shootingEnabled = !l;
     }
 }
