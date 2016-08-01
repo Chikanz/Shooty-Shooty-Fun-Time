@@ -86,6 +86,7 @@ public class ShootyShooty : NetworkBehaviour
     private float PokeThrust;
     public float pokeTMultiplier;
     private bool inac;
+    public bool shootingEnabled = true;
 
     private void Start()
     {
@@ -117,6 +118,7 @@ public class ShootyShooty : NetworkBehaviour
         }
 
         if (Input.GetButtonDown("Fire1")
+            && shootingEnabled
             && !reloading
             && inClip > 0
             && fpc.m_IsWalking
@@ -165,28 +167,6 @@ public class ShootyShooty : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        //if (NM.JumpAcc)
-        //{
-        //    if (outtaBullets || drunkinnac)
-        //    {
-        //        makeInAcc();
-        //    }
-        //    else if (fpc.m_Jumping)
-        //    {
-        //        makeAcc();
-        //    }
-        //    else
-        //    {
-        //        makeInAcc();
-        //    }
-        //}
-        //else if (fpc.velocity.magnitude > 10.5f || outtaBullets || coolDown || drunkinnac || fpc.m_Jumping && !NM.JumpAcc) //Innaccuracy
-        //{
-        //    makeInAcc();
-        //}
-        //else
-        //    makeAcc();
-
         if (shooting)
         {
             shooting = false;

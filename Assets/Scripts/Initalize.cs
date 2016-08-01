@@ -4,7 +4,8 @@ using UnityEngine.UI;
 
 public class Initalize : Photon.MonoBehaviour
 {
-    private Image hurtImage;
+    private Image hurtImage2;
+    public Color hurtImageColor;
 
     private Vector3 PlayerPos;
     private Quaternion PlayerRot;
@@ -18,7 +19,7 @@ public class Initalize : Photon.MonoBehaviour
 
     private Animator anim;
 
-    private Transform FPcam;
+    public Transform FPcam;
     private Quaternion camRot;
 
     private LightHandler lh;
@@ -68,7 +69,7 @@ public class Initalize : Photon.MonoBehaviour
 
         if (photonView.isMine)
         {
-            hurtImage = GameObject.Find("UI Groups/Main UI/HurtImage").GetComponent<Image>();
+            hurtImage2 = transform.Find("/UI Groups/Main UI/HurtImage").GetComponent<Image>();
             gameObject.layer = 2;
 
             GetComponent<Rigidbody>().useGravity = true;
@@ -78,7 +79,7 @@ public class Initalize : Photon.MonoBehaviour
 
             GetComponentInChildren<AudioListener>().enabled = true;
             GetComponentInChildren<FlareLayer>().enabled = true;
-            GetComponentInChildren<Skybox>().enabled = true;
+            //GetComponentInChildren<Skybox>().enabled = true;
 
             GetComponentInChildren<ShootyShooty>().enabled = true;
             GetComponentInChildren<GUILayer>().enabled = true;
@@ -104,30 +105,10 @@ public class Initalize : Photon.MonoBehaviour
         }
     }
 
-    private IEnumerator UpdateData()
-    {
-        while (PhotonNetwork.playerList.Length != 1)
-        {
-            transform.position = Vector3.Lerp(transform.position, SD.pos, Time.deltaTime * smoothing);
-            transform.rotation = Quaternion.Lerp(transform.rotation, SD.Rot, Time.deltaTime * smoothing);
-            FPcam.rotation = Quaternion.Lerp(FPcam.rotation, SD.camRot, Time.deltaTime * smoothing);
-
-            anim.SetBool("IsRunning", SD.AnimRunning);
-            anim.SetBool("IsWalking", SD.AnimWalking);
-
-            //anim.SetBool("Reload", reloading);
-            //anim.SetBool("outtaBullets", outtabullets);
-
-            yield return null;
-        }
-    }
-
     public void Update()
     {
         if (Input.GetKeyDown(KeyCode.L))
             Die();
-
-        //hurtImage.color = Color.Lerp(hurtImage.color, Color.clear, 5 * Time.deltaTime);
 
         if (photonView.isMine)
         {
@@ -145,8 +126,26 @@ public class Initalize : Photon.MonoBehaviour
                 SetKill(false);
                 GetComponentInChildren<Animator>().enabled = false;
                 died = false;
-                photonView.RPC("RestartRoundRPC", PhotonTargets.All, null);
+                NM.pv.RPC("RestartRound", PhotonTargets.All, null);
             }
+        }
+    }
+
+    private IEnumerator UpdateData()
+    {
+        while (PhotonNetwork.playerList.Length != 1)
+        {
+            transform.position = Vector3.Lerp(transform.position, SD.pos, Time.deltaTime * smoothing);
+            transform.rotation = Quaternion.Lerp(transform.rotation, SD.Rot, Time.deltaTime * smoothing);
+            FPcam.rotation = Quaternion.Lerp(FPcam.rotation, SD.camRot, Time.deltaTime * smoothing);
+
+            anim.SetBool("IsRunning", SD.AnimRunning);
+            anim.SetBool("IsWalking", SD.AnimWalking);
+
+            //anim.SetBool("Reload", reloading);
+            //anim.SetBool("outtaBullets", outtabullets);
+
+            yield return null;
         }
     }
 
@@ -174,6 +173,9 @@ public class Initalize : Photon.MonoBehaviour
     public void GotShot(int damage, Vector3 forcepos)
     {
         health -= damage;
+
+        if (photonView.isMine)
+            hurtImage2.color = hurtImageColor;
 
         if (health <= 0 && photonView.isMine)
         {
@@ -236,9 +238,10 @@ public class Initalize : Photon.MonoBehaviour
         died = true;
     }
 
-    private void SetKill(bool d)
+    private void SetKill(bool d) //true when dead
     {
         //GetComponentInChildren<Animator>().SetBool("isDead", d);
+        GetComponentInChildren<ShootyShooty>().shootingEnabled = !d;
         GetComponent<FirstPersonController>().enabled = !d;
         GetComponent<Rigidbody>().isKinematic = !d;
     }

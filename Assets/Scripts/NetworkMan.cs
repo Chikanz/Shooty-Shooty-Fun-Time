@@ -59,11 +59,12 @@ public class NetworkMan : Photon.MonoBehaviour
     private float randomConsecMod;
 
     //FX
-    private bool lowgrav;
+    private const int FxCount = 4;
 
-    public bool JumpAcc = false;
-    public bool drunk = false;
-    public bool godBullets = false;
+    public bool lowgrav;
+    public bool JumpAcc;
+    public bool drunk;
+    public bool godBullets;
 
     // Use this for initialization
     private void Start()
@@ -80,20 +81,6 @@ public class NetworkMan : Photon.MonoBehaviour
         ScoreText.text = Score[0] + " - " + Score[1];
 
         connectionText.text = PhotonNetwork.connectionStateDetailed.ToString();
-
-        if (roundEnded)
-        {
-            WinText.text = "";
-            player.GetComponent<Initalize>().health = 2;
-
-            player.transform.position = spawn.position;
-            player.transform.rotation = spawn.rotation;
-
-            if (godBullets)
-                pv.RPC("RestoreLevel", PhotonTargets.All, null);
-
-            roundEnded = false;
-        }
 
         if (Input.GetKeyDown(KeyCode.Backslash))
         {
@@ -208,6 +195,23 @@ public class NetworkMan : Photon.MonoBehaviour
         {
             chat.enabled = true;
         }
+    }
+
+    [PunRPC]
+    public void RestartRound()
+    {
+        WinText.text = "";
+        player.GetComponent<Initalize>().health = 2;
+        player.GetComponentInChildren<ShootyShooty>().inClip = 10;
+
+        player.GetComponent<Initalize>().FPcam.rotation = spawn.rotation;
+        player.transform.position = spawn.position;
+        player.transform.rotation = spawn.rotation;
+
+        ResetFX();
+        ChooseFX();
+
+        roundEnded = false;
     }
 
     [PunRPC]
@@ -328,5 +332,58 @@ public class NetworkMan : Photon.MonoBehaviour
             mod = -1;
 
         return keyboard[index + mod];
+    }
+
+    private void ChooseFX()
+    {
+        int numFX = Random.Range(1, 3);
+        List<int> pastIndexes = new List<int>();
+
+        while (pastIndexes.Count != numFX)
+        {
+            int FXindex = Random.Range(0, FxCount - 1);
+            if (pastIndexes.Contains(FXindex))
+                continue;
+
+            pastIndexes.Add(FXindex);
+            flipFX(FXindex, true);
+        }
+    }
+
+    private void flipFX(int index, bool flip)
+    {
+        switch (index)
+        {
+            case 0:
+                pv.RPC("LowGrav", PhotonTargets.All, flip);
+                break;
+
+            case 1:
+                pv.RPC("MakeJumpAcc", PhotonTargets.All, flip);
+                break;
+
+            case 2:
+                pv.RPC("AAAMDRUUUUNK", PhotonTargets.All, flip);
+                break;
+
+            case 3:
+                pv.RPC("GodBullets", PhotonTargets.All, flip);
+                break;
+
+            default:
+                Debug.Log("FXFlip Out of bounds");
+                break;
+        }
+    }
+
+    private void ResetFX()
+    {
+        if (godBullets)
+            pv.RPC("RestoreLevel", PhotonTargets.All, null);
+
+        for (int i = 0; i < FxCount; i++)
+        {
+            flipFX(i, false);
+        }
     }
 }
