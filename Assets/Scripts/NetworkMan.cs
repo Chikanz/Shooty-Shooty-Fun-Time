@@ -48,6 +48,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
     private FirstPersonController FPC;
     private ShootyShooty ss;
+    private Initalize init;
 
     public InputField username;
     public Canvas usernamecanvas;
@@ -59,13 +60,20 @@ public class NetworkMan : Photon.MonoBehaviour
     private float randomConsecMod;
 
     private Text FXList;
-    private string FXString;
+    private string FXString = "";
     private Text FXCountdown;
     private float newRoundTimer;
-    private bool playerLocked;
+    public float endRoundTimer;
+    private bool playerLocked = false;
 
     public bool roundEnded;
     public bool shotcaller;
+
+    public delegate void RoundEvent();
+
+    public static RoundEvent RestartEvent;
+
+    private readonly char[] trimings = { '+', ' ' };
 
     //FX
     private const int FxCount = 4;
@@ -79,7 +87,7 @@ public class NetworkMan : Photon.MonoBehaviour
     private void Start()
     {
         //PhotonNetwork.offlineMode = true;
-        PhotonNetwork.logLevel = PhotonLogLevel.Informational;
+        PhotonNetwork.logLevel = PhotonLogLevel.Full;
         PhotonNetwork.ConnectUsingSettings("0.1");
         pv = GetComponent<PhotonView>();
         FXList = transform.Find("/UI Groups/Main UI/FX Text").GetComponent<Text>();
@@ -91,7 +99,7 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         ScoreText.text = Score[0] + " - " + Score[1];
 
-        connectionText.text = PhotonNetwork.connectionStateDetailed.ToString();
+        connectionText.text = PhotonNetwork.connectionStateDetailed.ToString() + "   " + PhotonNetwork.GetPing();
 
         if (Input.GetKeyDown(KeyCode.Backslash))
         {
@@ -155,6 +163,7 @@ public class NetworkMan : Photon.MonoBehaviour
             chatMessage.Select();
         }
 
+        //New Round Timer
         if (newRoundTimer > 0 && playerLocked)
         {
             newRoundTimer -= Time.deltaTime;
@@ -168,6 +177,24 @@ public class NetworkMan : Photon.MonoBehaviour
             FXCountdown.text = "";
             shotcaller = false;
             roundEnded = false;
+        }
+
+        //End Round Timer
+        if (PhotonNetwork.inRoom)
+        {
+            if (init.died)
+                endRoundTimer -= Time.deltaTime;
+            endRoundTimer = Mathf.Clamp(endRoundTimer, 0, 10);
+
+            if (endRoundTimer <= 0 && init.died && shotcaller)
+            {
+                pv.RPC("RestartRound", PhotonTargets.All, null);
+            }
+        }
+
+        if (playerLocked)
+        {
+            player.transform.position = spawn.position;
         }
     }
 
@@ -202,6 +229,7 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         player = PhotonNetwork.Instantiate("Player", spawn.position, spawn.rotation, 0) as GameObject;
         ss = player.GetComponentInChildren<ShootyShooty>();
+        init = player.GetComponentInChildren<Initalize>();
     }
 
     [PunRPC]
@@ -229,15 +257,19 @@ public class NetworkMan : Photon.MonoBehaviour
     [PunRPC]
     public void RestartRound()
     {
+        init.SetKill(false);
         WinText.text = "";
         player.GetComponent<Initalize>().health = 4;
         player.GetComponentInChildren<ShootyShooty>().inClip = 10;
+        player.GetComponentInChildren<ShootyShooty>().outtaBullets = false;
+        player.GetComponentInChildren<ShootyShooty>().anim.SetTrigger("ForceIdle");
 
         player.GetComponent<Initalize>().FPcam.rotation = spawn.rotation;
         player.transform.position = spawn.position;
         player.transform.rotation = spawn.rotation;
 
         LockPlayer(true);
+
         newRoundTimer = 3;
 
         if (shotcaller)
@@ -247,6 +279,9 @@ public class NetworkMan : Photon.MonoBehaviour
             pv.RPC("FinishedCallingShots", PhotonTargets.Others, FXString);
         }
         FXList.text = FXString;
+
+        if (RestartEvent != null)
+            RestartEvent();
     }
 
     [PunRPC]
@@ -384,7 +419,10 @@ public class NetworkMan : Photon.MonoBehaviour
         float v = Random.value;
 
         if (v < 0.1f)
+        {
             numFX = 0;
+            FXString = "Just Normal";
+        }
         else if (v < 0.5)
             numFX = 1;
         else if (v < 0.8)
@@ -405,7 +443,6 @@ public class NetworkMan : Photon.MonoBehaviour
             FXString += GetFXText(FXindex) + " + ";
         }
 
-        char[] trimings = { '+', ' ' };
         FXString = FXString.TrimEnd(trimings);
     }
 

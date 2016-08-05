@@ -12,7 +12,7 @@ public class Initalize : Photon.MonoBehaviour
 
     public int health = 4;
 
-    private float endRoundTimer;
+    //private float endRoundTimer;
     private float smoothing = 15f;
 
     private NetworkMan NM;
@@ -36,7 +36,7 @@ public class Initalize : Photon.MonoBehaviour
     private bool damaged;
     public Color flashColour = new Color(1f, 0f, 0f, 1f);
 
-    private bool died;
+    public bool died;
 
     public struct SendData
     {
@@ -55,7 +55,7 @@ public class Initalize : Photon.MonoBehaviour
         PhotonNetwork.sendRateOnSerialize = 60;
 
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
-        anim = GetComponentsInChildren<Animator>()[1];
+        anim = GetComponentInChildren<Animator>();
         FPcam = transform.Find("FirstPersonCharacter");
         lh = GetComponentInChildren<LightHandler>();
         PS = GetComponentInChildren<ParticleSystem>();
@@ -107,27 +107,21 @@ public class Initalize : Photon.MonoBehaviour
 
     public void Update()
     {
-        if (Input.GetKey(KeyCode.L) && photonView.isMine)
-            Die();
-
         if (photonView.isMine)
         {
+            if (Input.GetKey(KeyCode.L))
+                Die();
+
             running = anim.GetBool("IsRunning");
             walking = anim.GetBool("IsWalking");
             camRot = FPcam.rotation;
 
-            if (died)
-                endRoundTimer -= Time.deltaTime;
-
-            //endRoundTimer = Mathf.Clamp(endRoundTimer, 0, 10);
-
-            if (endRoundTimer <= 0 && died)
-            {
-                SetKill(false);
-                GetComponentInChildren<Animator>().enabled = false;
-                died = false;
-                NM.pv.RPC("RestartRound", PhotonTargets.All, null);
-            }
+            //if (endRoundTimer <= 0 && died)
+            //{
+            //    SetKill(false);
+            //
+            //    NM.pv.RPC("RestartRound", PhotonTargets.All, null);
+            //}
         }
     }
 
@@ -215,8 +209,8 @@ public class Initalize : Photon.MonoBehaviour
 
     public void Die()
     {
-        GetComponent<Rigidbody>().AddForce(body.transform.forward * -700);
         DieInner();
+        GetComponent<Rigidbody>().AddForce(body.transform.forward * 700);
     }
 
     private void DieInner()
@@ -224,23 +218,25 @@ public class Initalize : Photon.MonoBehaviour
         if (died)
             return;
 
-        if (!NM.roundEnded && photonView.isMine)
+        if (!NM.roundEnded)
         {
-            NM.shotcaller = true;
             NM.pv.RPC(NM.playerNumber == 0 ? "P2Up" : "P1Up", PhotonTargets.All, null);
-            endRoundTimer = 5;
+            NM.shotcaller = true;
+            NM.endRoundTimer = 5;
         }
 
         SetKill(true);
         died = true;
     }
 
-    private void SetKill(bool d) //true when dead
+    public void SetKill(bool d) //true when dead
     {
         //GetComponentInChildren<Animator>().SetBool("isDead", d);
+        died = d;
         GetComponentInChildren<ShootyShooty>().shootingEnabled = !d;
         GetComponent<FirstPersonController>().enabled = !d;
         GetComponent<Rigidbody>().isKinematic = !d;
+        GetComponentInChildren<Animator>().enabled = !d;
     }
 
     private void OnTriggerEnter(Collider other)

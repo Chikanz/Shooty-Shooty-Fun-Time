@@ -117,7 +117,7 @@ public class FirstPersonController : MonoBehaviour
     {
         RotateView();
         // the jump state needs to read here to make sure it is not missed
-        if (!m_Jump && allowInput)
+        if (!m_Jump && allowInput && m_CharacterController.isGrounded) //can only jump on the ground
         {
             m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
         }
