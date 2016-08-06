@@ -88,6 +88,8 @@ public class ShootyShooty : NetworkBehaviour
     private bool inac;
     public bool shootingEnabled = true;
 
+    public int bulletDamage = 1;
+
     private void Start()
     {
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
@@ -183,7 +185,7 @@ public class ShootyShooty : NetworkBehaviour
                 if (hit.transform.tag == "Player" && hit.collider.isTrigger && !hit.transform.GetComponent<PhotonView>().isMine)
                 {
                     hit.transform.GetComponent<PhotonView>()
-                        .RPC("GotShot", PhotonTargets.All, hit.transform.name == "Head" ? 2 : 1, hit.transform.position);
+                        .RPC("GotShot", PhotonTargets.All, hit.transform.name == "Head" ? bulletDamage * 2 : bulletDamage, hit.transform.position);
 
                     Hitmarker(hit.transform.name == "Head");
                     BloodParticles(hit);

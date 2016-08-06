@@ -94,6 +94,13 @@ public class FirstPersonController : MonoBehaviour
     public Vector3 desiredMove;
 
     private NetworkMan NM;
+    private ShootyShooty SS;
+
+    private Vector3 blinkVel;
+    private float blinkLerp = 99;
+    private Vector3 blinkFrom;
+    public int blinks = 3;
+    private float blinkTimer;
 
     // Use this for initialization
     private void Start()
@@ -110,6 +117,7 @@ public class FirstPersonController : MonoBehaviour
         m_MouseLook.Init(transform, m_Camera.transform);
 
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+        SS = GetComponentInChildren<ShootyShooty>();
     }
 
     // Update is called once per frame
@@ -199,12 +207,38 @@ public class FirstPersonController : MonoBehaviour
             outVel = m_MoveDir;
         }
 
+        if (blinkLerp <= 1)
+            outVel = Vector3.zero;
+
+        //BIG DADDY MOVE
         m_CollisionFlags = m_CharacterController.Move(outVel * Time.fixedDeltaTime);
 
         ProgressStepCycle(speed);
         UpdateCameraPosition(speed);
 
         m_MouseLook.UpdateCursorLock();
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && NM.blink && blinks > 0)
+        {
+            blinkFrom = transform.position;
+            blinkVel = transform.position += new Vector3(m_MoveDir.x, 0, m_MoveDir.z) * 2;
+            blinkLerp = 0;
+            blinks -= 1;
+        }
+        if (blinkLerp <= 1)
+        {
+            transform.position = Vector3.Lerp(blinkFrom, blinkVel, blinkLerp);
+            blinkLerp += Time.deltaTime * 4;
+        }
+        if (blinks < 3 && blinkTimer > 3)
+        {
+            blinks += 1;
+            blinkTimer = 0;
+        }
+        else
+        {
+            blinkTimer += Time.deltaTime;
+        }
     }
 
     private void PlayJumpSound()
@@ -279,17 +313,13 @@ public class FirstPersonController : MonoBehaviour
             vertical = CrossPlatformInputManager.GetAxis("Vertical");
         }
 
-        //anim trigger
-        //if (Input.GetKeyDown(KeyCode.LeftShift) && m_IsWalking && velocity > 10)
-        //    anim.SetTrigger("IsRunning");
-        //
-        //if (Input.GetKeyUp(KeyCode.LeftShift))
-        //    anim.SetTrigger("StoppedRunning");
-
         anim.SetBool("IsRunning", !m_IsWalking);
 
         bool waswalking = m_IsWalking;
         m_IsWalking = !Input.GetKey(KeyCode.LeftShift);
+
+        if (SS.reloading || NM.blink) //Zek code
+            m_IsWalking = true;
 
         // set the desired speed to be walking or running
         speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;

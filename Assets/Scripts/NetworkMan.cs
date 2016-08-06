@@ -65,7 +65,7 @@ public class NetworkMan : Photon.MonoBehaviour
     private Text FXCountdown;
     private float newRoundTimer;
     public float endRoundTimer;
-    private bool playerLocked = false;
+    private bool playerLocked;
 
     public bool roundEnded;
     public bool shotcaller;
@@ -87,6 +87,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool JumpAcc;
     public bool drunk;
     public bool godBullets;
+    public bool blink = true;
 
     // Use this for initialization
     private void Start()
@@ -232,7 +233,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public void Spawn()
     {
-        player = PhotonNetwork.Instantiate("Player", spawn.position, spawn.rotation, 0) as GameObject;
+        player = PhotonNetwork.Instantiate("Player", spawn.position, spawn.rotation, 0);
         ss = player.GetComponentInChildren<ShootyShooty>();
         init = player.GetComponentInChildren<Initalize>();
         normalInnac = ss.maxInnac;
@@ -354,11 +355,13 @@ public class NetworkMan : Photon.MonoBehaviour
         {
             ss.maxInnac = deagleInnac;
             ss.spamInnac = 99;
+            ss.bulletDamage = 2;
         }
         else
         {
             ss.maxInnac = normalInnac;
             ss.spamInnac = normalInnacDecay;
+            ss.bulletDamage = 1;
         }
     }
 
@@ -372,6 +375,8 @@ public class NetworkMan : Photon.MonoBehaviour
     public void MumsSpaghetti(bool b)
     {
         ss.maxClip = b ? 1 : 10;
+        ss.inClip = b ? 1 : 10;
+        ss.bulletDamage = b ? 4 : 1;
     }
 
     [PunRPC]
