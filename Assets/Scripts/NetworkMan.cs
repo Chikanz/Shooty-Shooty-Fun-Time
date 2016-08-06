@@ -26,6 +26,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public Text ScoreText;
 
     public Animator CHAnim;
+    public Canvas CHCanvas;
 
     public List<GameObject> everything;
     //private List<string> DestroyedObjs = new List<string>();
@@ -73,10 +74,14 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public static RoundEvent RestartEvent;
 
+    public float deagleInnac = 0.2f;
+    private float normalInnac;
+    private float normalInnacDecay;
+
     private readonly char[] trimings = { '+', ' ' };
 
     //FX
-    private const int FxCount = 4;
+    private const int FxCount = 7;
 
     public bool lowgrav;
     public bool JumpAcc;
@@ -230,6 +235,8 @@ public class NetworkMan : Photon.MonoBehaviour
         player = PhotonNetwork.Instantiate("Player", spawn.position, spawn.rotation, 0) as GameObject;
         ss = player.GetComponentInChildren<ShootyShooty>();
         init = player.GetComponentInChildren<Initalize>();
+        normalInnac = ss.maxInnac;
+        normalInnacDecay = ss.spamInnac;
     }
 
     [PunRPC]
@@ -261,6 +268,7 @@ public class NetworkMan : Photon.MonoBehaviour
         WinText.text = "";
         player.GetComponent<Initalize>().health = 4;
         player.GetComponentInChildren<ShootyShooty>().inClip = 10;
+        player.GetComponentInChildren<ShootyShooty>().reloading = false;
         player.GetComponentInChildren<ShootyShooty>().outtaBullets = false;
         player.GetComponentInChildren<ShootyShooty>().anim.SetTrigger("ForceIdle");
 
@@ -337,6 +345,33 @@ public class NetworkMan : Photon.MonoBehaviour
     public void GodBullets(bool b)
     {
         godBullets = b;
+    }
+
+    [PunRPC]
+    public void Deagle(bool b)
+    {
+        if (b)
+        {
+            ss.maxInnac = deagleInnac;
+            ss.spamInnac = 99;
+        }
+        else
+        {
+            ss.maxInnac = normalInnac;
+            ss.spamInnac = normalInnacDecay;
+        }
+    }
+
+    [PunRPC]
+    public void NoScope(bool b)
+    {
+        CHCanvas.enabled = !b;
+    }
+
+    [PunRPC]
+    public void MumsSpaghetti(bool b)
+    {
+        ss.maxClip = b ? 1 : 10;
     }
 
     [PunRPC]
@@ -425,7 +460,7 @@ public class NetworkMan : Photon.MonoBehaviour
         }
         else if (v < 0.5)
             numFX = 1;
-        else if (v < 0.8)
+        else if (v < 0.7)
             numFX = 2;
         else
             numFX = 3;
@@ -466,6 +501,18 @@ public class NetworkMan : Photon.MonoBehaviour
                 pv.RPC("GodBullets", PhotonTargets.All, flip);
                 break;
 
+            case 4:
+                pv.RPC("Deagle", PhotonTargets.All, flip);
+                break;
+
+            case 5:
+                pv.RPC("NoScope", PhotonTargets.All, flip);
+                break;
+
+            case 6:
+                pv.RPC("MumsSpaghetti", PhotonTargets.All, flip);
+                break;
+
             default:
                 Debug.Log("FXFlip Out of bounds");
                 break;
@@ -501,6 +548,18 @@ public class NetworkMan : Photon.MonoBehaviour
 
             case 3:
                 return "God Bullets";
+                break;
+
+            case 4:
+                return "Deagle";
+                break;
+
+            case 5:
+                return "No Scope";
+                break;
+
+            case 6:
+                return "Mum's Spaghetti";
                 break;
 
             default:

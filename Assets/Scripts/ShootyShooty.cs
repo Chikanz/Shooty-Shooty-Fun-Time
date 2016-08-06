@@ -180,7 +180,7 @@ public class ShootyShooty : NetworkBehaviour
 
             if (Physics.Raycast(transform.position, spray, out hit, 300f))
             {
-                if (hit.transform.tag == "Player" && hit.collider.isTrigger) //&& !hit.transform.GetComponent<PhotonView>().isMine)
+                if (hit.transform.tag == "Player" && hit.collider.isTrigger && !hit.transform.GetComponent<PhotonView>().isMine)
                 {
                     hit.transform.GetComponent<PhotonView>()
                         .RPC("GotShot", PhotonTargets.All, hit.transform.name == "Head" ? 2 : 1, hit.transform.position);
