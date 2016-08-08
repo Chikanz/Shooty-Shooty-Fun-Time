@@ -99,7 +99,7 @@ public class FirstPersonController : MonoBehaviour
     private Vector3 blinkVel;
     private float blinkLerp = 99;
     private Vector3 blinkFrom;
-    public int blinks = 3;
+    public int blinks;
     private float blinkTimer;
 
     // Use this for initialization
@@ -218,12 +218,13 @@ public class FirstPersonController : MonoBehaviour
 
         m_MouseLook.UpdateCursorLock();
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) && NM.blink && blinks > 0)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && NM.blink && blinks > 0 && !(blinkLerp <= 1))
         {
             blinkFrom = transform.position;
             blinkVel = transform.position += new Vector3(m_MoveDir.x, 0, m_MoveDir.z) * 2;
             blinkLerp = 0;
             blinks -= 1;
+            blinkTimer = 0;
         }
         if (blinkLerp <= 1)
         {

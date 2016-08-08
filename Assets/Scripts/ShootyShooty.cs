@@ -185,7 +185,7 @@ public class ShootyShooty : NetworkBehaviour
                 if (hit.transform.tag == "Player" && hit.collider.isTrigger && !hit.transform.GetComponent<PhotonView>().isMine)
                 {
                     hit.transform.GetComponent<PhotonView>()
-                        .RPC("GotShot", PhotonTargets.All, hit.transform.name == "Head" ? bulletDamage * 2 : bulletDamage, hit.transform.position);
+                        .RPC("GotShot", PhotonTargets.All, hit.collider.name == "Head" ? bulletDamage * 2 : bulletDamage, hit.transform.position);
 
                     Hitmarker(hit.transform.name == "Head");
                     BloodParticles(hit);

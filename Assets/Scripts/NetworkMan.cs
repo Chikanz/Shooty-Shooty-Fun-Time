@@ -17,7 +17,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public Transform spawn;
 
-    private GameObject player;
+    public GameObject player;
 
     public int playerNumber;
 
@@ -81,13 +81,13 @@ public class NetworkMan : Photon.MonoBehaviour
     private readonly char[] trimings = { '+', ' ' };
 
     //FX
-    private const int FxCount = 7;
+    private const int FxCount = 8;
 
     public bool lowgrav;
     public bool JumpAcc;
     public bool drunk;
     public bool godBullets;
-    public bool blink = true;
+    public bool blink;
 
     // Use this for initialization
     private void Start()
@@ -238,6 +238,9 @@ public class NetworkMan : Photon.MonoBehaviour
         init = player.GetComponentInChildren<Initalize>();
         normalInnac = ss.maxInnac;
         normalInnacDecay = ss.spamInnac;
+
+        if (RestartEvent != null)
+            RestartEvent();
     }
 
     [PunRPC]
@@ -380,6 +383,13 @@ public class NetworkMan : Photon.MonoBehaviour
     }
 
     [PunRPC]
+    public void Blink(bool b)
+    {
+        player.GetComponent<FirstPersonController>().blinks = 0;
+        blink = b;
+    }
+
+    [PunRPC]
     public void KillLevel(int i)
     {
         everything[i].SetActive(false);
@@ -518,6 +528,10 @@ public class NetworkMan : Photon.MonoBehaviour
                 pv.RPC("MumsSpaghetti", PhotonTargets.All, flip);
                 break;
 
+            case 7:
+                pv.RPC("Blink", PhotonTargets.All, flip);
+                break;
+
             default:
                 Debug.Log("FXFlip Out of bounds");
                 break;
@@ -565,6 +579,10 @@ public class NetworkMan : Photon.MonoBehaviour
 
             case 6:
                 return "Mum's Spaghetti";
+                break;
+
+            case 7:
+                return "Blink";
                 break;
 
             default:

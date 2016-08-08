@@ -157,6 +157,7 @@
     <Compile Include="Assets\Scripts\LightHandler.cs" />
     <Compile Include="Assets\Scripts\NetworkMan.cs" />
     <Compile Include="Assets\Scripts\ShootyShooty.cs" />
+    <Compile Include="Assets\Scripts\UIManager.cs" />
     <Compile Include="Assets\Scripts\killparticle.cs" />
     <Compile Include="Assets\Scripts\locky.cs" />
   </ItemGroup>
