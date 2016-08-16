@@ -58,12 +58,6 @@
     <Reference Include="UnityEngine.Networking">
       <HintPath>Library\UnityAssemblies\UnityEngine.Networking.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.Networking">
-      <HintPath>Library\UnityAssemblies\UnityEngine.Networking.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>Library\UnityAssemblies\UnityEngine.UI.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEditor">
       <HintPath>Library\UnityAssemblies\UnityEditor.dll</HintPath>
     </Reference>
@@ -163,6 +157,7 @@
     <Compile Include="Assets\Scripts\LightHandler.cs" />
     <Compile Include="Assets\Scripts\NetworkMan.cs" />
     <Compile Include="Assets\Scripts\ShootyShooty.cs" />
+    <Compile Include="Assets\Scripts\StuffGunObject.cs" />
     <Compile Include="Assets\Scripts\UIManager.cs" />
     <Compile Include="Assets\Scripts\killparticle.cs" />
     <Compile Include="Assets\Scripts\locky.cs" />

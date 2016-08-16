@@ -8,10 +8,8 @@ TagManager:
   - Enemy
   - Level
   - Casing
-  - BEVS
-  - JumpAcc
-  - GodBullets
   - OuttaBounds
+  - Stuff
   layers:
   - Default
   - TransparentFX

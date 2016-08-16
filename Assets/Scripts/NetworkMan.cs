@@ -81,13 +81,14 @@ public class NetworkMan : Photon.MonoBehaviour
     private readonly char[] trimings = { '+', ' ' };
 
     //FX
-    private const int FxCount = 8;
+    private const int FxCount = 6;
 
     public bool lowgrav;
     public bool JumpAcc;
     public bool drunk;
     public bool godBullets;
     public bool blink;
+    public bool stuffGun = true;
 
     // Use this for initialization
     private void Start()
@@ -509,32 +510,32 @@ public class NetworkMan : Photon.MonoBehaviour
                 break;
 
             case 2:
-                pv.RPC("AAAMDRUUUUNK", PhotonTargets.All, flip);
-                break;
-
-            case 3:
                 pv.RPC("GodBullets", PhotonTargets.All, flip);
                 break;
 
-            case 4:
+            case 3:
                 pv.RPC("Deagle", PhotonTargets.All, flip);
                 break;
 
-            case 5:
-                pv.RPC("NoScope", PhotonTargets.All, flip);
-                break;
-
-            case 6:
+            case 4:
                 pv.RPC("MumsSpaghetti", PhotonTargets.All, flip);
                 break;
 
-            case 7:
+            case 5:
                 pv.RPC("Blink", PhotonTargets.All, flip);
                 break;
 
             default:
                 Debug.Log("FXFlip Out of bounds");
                 break;
+
+                //case 5:
+                //    pv.RPC("NoScope", PhotonTargets.All, flip);
+                //    break;
+
+                //case 2:
+                //    pv.RPC("AAAMDRUUUUNK", PhotonTargets.All, flip);
+                //    break;
         }
     }
 
@@ -562,26 +563,18 @@ public class NetworkMan : Photon.MonoBehaviour
                 break;
 
             case 2:
-                return "Alcohol";
-                break;
-
-            case 3:
                 return "God Bullets";
                 break;
 
-            case 4:
+            case 3:
                 return "Deagle";
                 break;
 
-            case 5:
-                return "No Scope";
-                break;
-
-            case 6:
+            case 4:
                 return "Mum's Spaghetti";
                 break;
 
-            case 7:
+            case 5:
                 return "Blink";
                 break;
 
@@ -589,6 +582,14 @@ public class NetworkMan : Photon.MonoBehaviour
                 Debug.Log("FXString Out of bounds");
                 return "";
                 break;
+
+                //case 5:
+                //    return "No Scope";
+                //    break;
+
+                //case 2:
+                //    return "Alcohol";
+                //    break;
         }
     }
 

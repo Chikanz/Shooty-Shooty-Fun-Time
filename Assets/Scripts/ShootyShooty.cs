@@ -90,6 +90,14 @@ public class ShootyShooty : NetworkBehaviour
 
     public int bulletDamage = 1;
 
+    private string[] stuffs =
+    {
+        "arrow",
+        "BEVS",
+        "MrShooty",
+        "pokeball"
+    };
+
     private void Start()
     {
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
@@ -169,7 +177,7 @@ public class ShootyShooty : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        if (shooting)
+        if (shooting && !NM.stuffGun)
         {
             shooting = false;
 
@@ -195,29 +203,6 @@ public class ShootyShooty : NetworkBehaviour
                     hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 500, hit.point);
                     BloodParticles(hit);
                 }
-                else if (hit.transform.tag == "LowGrav")
-                {
-                    BloodParticles(hit);
-                    NM.pv.RPC("LowGrav", PhotonTargets.All, !NM.lowGrav);
-                }
-                else if (hit.transform.tag == "BEVS")
-                {
-                    NM.pv.RPC("AAAMDRUUUUNK", PhotonTargets.All, !NM.drunk);
-                }
-                else if (hit.transform.tag == "GodBullets")
-                {
-                    NM.pv.RPC("GodBullets", PhotonTargets.All, !NM.godBullets);
-                }
-                else if (hit.transform.tag == "Casing")
-                {
-                    LevelParticles(hit);
-                    hit.rigidbody.AddForceAtPosition(transform.forward * 5000, hit.point);
-                }
-                else if (hit.transform.tag == "JumpAcc")
-                {
-                    BloodParticles(hit);
-                    NM.pv.RPC("MakeJumpAcc", PhotonTargets.All, !NM.JumpAcc);
-                }
                 else if (NM.godBullets)
                 {
                     var i = NM.everything.IndexOf(hit.transform.gameObject);
@@ -235,6 +220,22 @@ public class ShootyShooty : NetworkBehaviour
 
             shootInnac += spamInnac;
         }
+        else if (shooting && NM.stuffGun)
+        {
+            var spray = transform.forward;
+
+            spray.x += Random.Range(-inaccuracy, inaccuracy);
+            spray.y += Random.Range(-inaccuracy, inaccuracy);
+            spray.z += Random.Range(-inaccuracy, inaccuracy);
+
+            var rnd = Random.Range(0, stuffs.Length);
+            string stuffString = stuffs[rnd];
+            shooting = false;
+            var stuff = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position, Random.rotation, 0);
+            stuff.GetComponent<Rigidbody>().AddForce(spray * 1000);
+            stuff.GetComponent<Rigidbody>().AddTorque(transform.up * 100);
+        }
+
         CalcInaccuracy();
     }
 
