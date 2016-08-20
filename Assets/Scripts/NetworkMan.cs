@@ -81,14 +81,14 @@ public class NetworkMan : Photon.MonoBehaviour
     private readonly char[] trimings = { '+', ' ' };
 
     //FX
-    private const int FxCount = 6;
+    private const int FxCount = 7;
 
     public bool lowgrav;
     public bool JumpAcc;
     public bool drunk;
     public bool godBullets;
     public bool blink;
-    public bool stuffGun = true;
+    public bool stuffGun;
 
     // Use this for initialization
     private void Start()
@@ -391,6 +391,12 @@ public class NetworkMan : Photon.MonoBehaviour
     }
 
     [PunRPC]
+    public void StuffGun(bool b)
+    {
+        stuffGun = b;
+    }
+
+    [PunRPC]
     public void KillLevel(int i)
     {
         everything[i].SetActive(false);
@@ -525,6 +531,10 @@ public class NetworkMan : Photon.MonoBehaviour
                 pv.RPC("Blink", PhotonTargets.All, flip);
                 break;
 
+            case 6:
+                pv.RPC("StuffGun", PhotonTargets.All, flip);
+                break;
+
             default:
                 Debug.Log("FXFlip Out of bounds");
                 break;
@@ -576,6 +586,10 @@ public class NetworkMan : Photon.MonoBehaviour
 
             case 5:
                 return "Blink";
+                break;
+
+            case 6:
+                return "Stuff Gun";
                 break;
 
             default:

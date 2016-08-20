@@ -12,6 +12,8 @@ public class ShootyShooty : NetworkBehaviour
 
     public GameObject pokeBall;
 
+    public GameObject Bullet;
+
     public GameObject impactPrefab;
     public GameObject levelImpact;
 
@@ -89,6 +91,7 @@ public class ShootyShooty : NetworkBehaviour
     public bool shootingEnabled = true;
 
     public int bulletDamage = 1;
+    public int bulletSpeed = 1000;
 
     private string[] stuffs =
     {
@@ -182,6 +185,8 @@ public class ShootyShooty : NetworkBehaviour
             shooting = false;
 
             RaycastHit hit;
+
+            Ray ray;
             var spray = transform.forward;
 
             spray.x += Random.Range(-inaccuracy, inaccuracy);
@@ -190,6 +195,16 @@ public class ShootyShooty : NetworkBehaviour
 
             if (Physics.Raycast(transform.position, spray, out hit, 300f))
             {
+                //Bullet Instance
+                var bullet = Instantiate(Bullet, Gunlight.transform.position, Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
+
+                // Gets a vector that points from the player's position to the target's. (from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
+                var heading = hit.point - Gunlight.transform.position;
+                var distance = heading.magnitude;
+                var direction = heading / distance; // This is now the normalized direction.
+
+                bullet.GetComponent<Rigidbody>().AddForce(direction * bulletSpeed);
+
                 if (hit.transform.tag == "Player" && hit.collider.isTrigger && !hit.transform.GetComponent<PhotonView>().isMine)
                 {
                     hit.transform.GetComponent<PhotonView>()
@@ -214,7 +229,7 @@ public class ShootyShooty : NetworkBehaviour
 
                 if (hit.transform.gameObject.layer == 10)
                 {
-                    LevelParticles(hit);
+                    LevelParticles(hit, hit.transform.gameObject);
                 }
             }
 
@@ -239,9 +254,17 @@ public class ShootyShooty : NetworkBehaviour
         CalcInaccuracy();
     }
 
-    private void LevelParticles(RaycastHit hit)
+    private void LevelParticles(RaycastHit hit, GameObject other)
     {
         var c = Instantiate(levelImpact, hit.point, hit.transform.rotation) as GameObject;
+        var othercol = other.GetComponent<Renderer>().material.color * 0.5f;
+        //Texture2D texMap = (Texture2D)hit.transform.GetComponent<Renderer>().material.mainTexture;
+        //var othercol = texMap.GetPixel((int)hit.textureCoord2.x, (int)hit.textureCoord2.y);
+
+        c.GetComponent<Renderer>().material.color = othercol;
+        var levelhit = c.transform.GetChild(0);
+        levelhit.GetComponent<Renderer>().material.color = othercol;
+
         impactList.Add(c);
 
         if (impactList.Count > maxImpacts)

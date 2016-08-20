@@ -10,7 +10,7 @@ public class StuffGunObject : MonoBehaviour
 
     private void Start()
     {
-        //NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+        NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
         NetworkMan.RestartEvent += Die;
     }
 

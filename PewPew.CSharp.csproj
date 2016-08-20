@@ -159,6 +159,7 @@
     <Compile Include="Assets\Scripts\ShootyShooty.cs" />
     <Compile Include="Assets\Scripts\StuffGunObject.cs" />
     <Compile Include="Assets\Scripts\UIManager.cs" />
+    <Compile Include="Assets\Scripts\bulletScript.cs" />
     <Compile Include="Assets\Scripts\killparticle.cs" />
     <Compile Include="Assets\Scripts\locky.cs" />
   </ItemGroup>

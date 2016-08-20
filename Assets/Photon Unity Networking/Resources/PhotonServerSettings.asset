@@ -50,4 +50,5 @@ MonoBehaviour:
   - RestartRound
   - RestoreLevel
   - SendChatMessage
+  - StuffGun
   DisableAutoOpenWizard: 1

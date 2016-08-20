@@ -1106,6 +1106,7 @@ MonoBehaviour:
   muzzleFlash: {fileID: 19846656}
   anim: {fileID: 9572340}
   pokeBall: {fileID: 144682, guid: f4583008eda886b4fbbac33cc410eef6, type: 2}
+  Bullet: {fileID: 124982, guid: 39c9cbab3d519604d9c8898a049afcee, type: 2}
   impactPrefab: {fileID: 111372, guid: b9a30aa4806a2f84c83aa0be91bd1827, type: 2}
   levelImpact: {fileID: 128196, guid: 444b587a4717e534bac8a140e64a4b9d, type: 2}
   gunSound: {fileID: 8251158}
@@ -1135,6 +1136,7 @@ MonoBehaviour:
   pokeTMultiplier: 1000
   shootingEnabled: 1
   bulletDamage: 1
+  bulletSpeed: 10000
 --- !u!114 &11468368
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1332,7 +1334,7 @@ ParticleSystem:
   looping: 0
   prewarm: 0
   playOnAwake: 0
-  moveWithTransform: 1
+  moveWithTransform: 0
   scalingMode: 1
   InitialModule:
     serializedVersion: 2
@@ -1664,13 +1666,13 @@ ParticleSystem:
     m_MeshNormalOffset: 0
     m_UseMeshMaterialIndex: 0
     m_UseMeshColors: 1
-    randomDirection: 0
+    randomDirection: 1
   EmissionModule:
     enabled: 1
     serializedVersion: 2
     m_Type: 0
     rate:
-      scalar: 63.9
+      scalar: 41.3
       maxCurve:
         serializedVersion: 2
         m_Curve:
