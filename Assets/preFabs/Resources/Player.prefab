@@ -195,7 +195,6 @@ GameObject:
   - 20: {fileID: 2015570}
   - 81: {fileID: 8150008}
   - 124: {fileID: 12484372}
-  - 114: {fileID: 114000010874862678}
   - 114: {fileID: 114000010054332264}
   - 114: {fileID: 114000011590070558}
   - 114: {fileID: 114000010027399444}
@@ -1131,7 +1130,8 @@ MonoBehaviour:
   pokeBall: {fileID: 144682, guid: f4583008eda886b4fbbac33cc410eef6, type: 2}
   Bullet: {fileID: 124982, guid: 39c9cbab3d519604d9c8898a049afcee, type: 2}
   impactPrefab: {fileID: 111372, guid: b9a30aa4806a2f84c83aa0be91bd1827, type: 2}
-  levelImpact: {fileID: 128196, guid: 444b587a4717e534bac8a140e64a4b9d, type: 2}
+  levelImpact: {fileID: 1000010043044814, guid: dd26f256db0a258428f9436521ddfab0,
+    type: 2}
   gunSound: {fileID: 8251158}
   casing: {fileID: 171806, guid: 6d7f6ceab7e36054e99f2a2adf601560, type: 2}
   casingSpawn: {fileID: 461950}
@@ -3168,25 +3168,6 @@ MonoBehaviour:
     debug: 0
   _aoShader: {fileID: 4800000, guid: 65e203e5acda447acbf9dc1ef78c4a39, type: 3}
   _quadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114000010874862678
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 184670}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32187365ced0c42219cde2b57c99b323, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  settings:
-    threshold: 0.9
-    softKnee: 0.5
-    radius: 1.66
-    intensity: 0.23
-    highQuality: 1
-    antiFlicker: 0
-  m_Shader: {fileID: 4800000, guid: e45d4f28262b04d10a075856ab5fdb5e, type: 3}
 --- !u!114 &114000011590070558
 MonoBehaviour:
   m_ObjectHideFlags: 1

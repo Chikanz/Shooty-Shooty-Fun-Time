@@ -14,8 +14,13 @@ public class bulletScript : MonoBehaviour
     {
     }
 
-    private void OnCollisionEnter(Collision collision)
+    public void OnTriggerEnter(Collider other)
     {
+        if (other.tag == "LevelHit")
+        {
+            other.GetComponent<MeshRenderer>().enabled = true;
+            other.GetComponent<ParticleSystem>().Play();
+        }
         Destroy(gameObject);
     }
 }

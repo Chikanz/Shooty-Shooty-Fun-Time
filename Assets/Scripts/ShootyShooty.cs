@@ -262,8 +262,9 @@ public class ShootyShooty : NetworkBehaviour
         //var othercol = texMap.GetPixel((int)hit.textureCoord2.x, (int)hit.textureCoord2.y);
 
         c.GetComponent<Renderer>().material.color = othercol;
-        var levelhit = c.transform.GetChild(0);
-        levelhit.GetComponent<Renderer>().material.color = othercol;
+        //var levelhit = c.transform.GetChild(0);
+        //levelhit.GetComponent<Renderer>().material.color = othercol;
+        c.GetComponent<ParticleSystemRenderer>().material.color = othercol;
 
         impactList.Add(c);
 

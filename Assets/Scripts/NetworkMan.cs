@@ -81,7 +81,7 @@ public class NetworkMan : Photon.MonoBehaviour
     private readonly char[] trimings = { '+', ' ' };
 
     //FX
-    private const int FxCount = 7;
+    private const int FxCount = 6;
 
     public bool lowgrav;
     public bool JumpAcc;
@@ -520,18 +520,14 @@ public class NetworkMan : Photon.MonoBehaviour
                 break;
 
             case 3:
-                pv.RPC("Deagle", PhotonTargets.All, flip);
-                break;
-
-            case 4:
                 pv.RPC("MumsSpaghetti", PhotonTargets.All, flip);
                 break;
 
-            case 5:
+            case 4:
                 pv.RPC("Blink", PhotonTargets.All, flip);
                 break;
 
-            case 6:
+            case 5:
                 pv.RPC("StuffGun", PhotonTargets.All, flip);
                 break;
 
@@ -539,6 +535,9 @@ public class NetworkMan : Photon.MonoBehaviour
                 Debug.Log("FXFlip Out of bounds");
                 break;
 
+                //case 3:
+                //    pv.RPC("Deagle", PhotonTargets.All, flip);
+                //    break;
                 //case 5:
                 //    pv.RPC("NoScope", PhotonTargets.All, flip);
                 //    break;
