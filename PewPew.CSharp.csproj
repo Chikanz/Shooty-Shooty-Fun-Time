@@ -146,6 +146,8 @@
     <Compile Include="Assets\PhotonChatApi\ChatState.cs" />
     <Compile Include="Assets\PhotonChatApi\ChatUserStatus.cs" />
     <Compile Include="Assets\PhotonChatApi\IChatClientListener.cs" />
+    <Compile Include="Assets\RadialSliderUI\Scripts\RadialSlider.cs" />
+    <Compile Include="Assets\Scripts\BulletManager.cs" />
     <Compile Include="Assets\Scripts\FPC\FirstPersonController.cs" />
     <Compile Include="Assets\Scripts\FPC\HeadBob.cs" />
     <Compile Include="Assets\Scripts\FPC\MouseLook.cs" />

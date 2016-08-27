@@ -15,7 +15,6 @@ public class ShootyShooty : NetworkBehaviour
     public GameObject Bullet;
 
     public GameObject impactPrefab;
-    public GameObject levelImpact;
 
     public AudioSource gunSound;
     public GameObject casing;
@@ -70,6 +69,7 @@ public class ShootyShooty : NetworkBehaviour
     private Image CH2;
 
     private NetworkMan NM;
+    private BulletManager BM;
 
     public float shootCoolDown = 0.3f;
 
@@ -93,6 +93,11 @@ public class ShootyShooty : NetworkBehaviour
     public int bulletDamage = 1;
     public int bulletSpeed = 1000;
 
+    public float slowMoJuice;
+    public float slowMoMax = 3;
+    public bool slowMoInUse = false;
+    public float slowMoMulti = 0.4f;
+
     private string[] stuffs =
     {
         "arrow",
@@ -103,6 +108,7 @@ public class ShootyShooty : NetworkBehaviour
 
     private void Start()
     {
+        BM = GameObject.Find("Bullet Manager").GetComponent<BulletManager>();
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
         Playerpv = player.GetComponent<PhotonView>();
         prevPos = transform.position;
@@ -172,6 +178,37 @@ public class ShootyShooty : NetworkBehaviour
             PokeThrust = 0;
         }
 
+        //SlowMo Stuff
+        if (NM.slowMo && !slowMoInUse && slowMoJuice < slowMoMax)
+        {
+            slowMoJuice += Time.deltaTime * 0.5f;
+        }
+        else if (slowMoInUse)
+        {
+            slowMoJuice -= Time.deltaTime * 2;
+        }
+
+        if (slowMoJuice <= 0)
+        {
+            slowMoJuice = 0;
+            slowMoInUse = false;
+            NM.pv.RPC("SlowMoSet", PhotonTargets.All, 1.0f);
+        }
+
+        if (NM.slowMo && Input.GetKeyDown(KeyCode.LeftShift) && slowMoJuice > 0)
+        {
+            if (!slowMoInUse)
+            {
+                slowMoInUse = true;
+                NM.pv.RPC("SlowMoSet", PhotonTargets.All, slowMoMulti);
+            }
+            else
+            {
+                slowMoInUse = false;
+                NM.pv.RPC("SlowMoSet", PhotonTargets.All, 1.0f);
+            }
+        }
+
         if (shootCoolDownTimer > 0.0f)
         {
             shootCoolDownTimer -= Time.deltaTime;
@@ -198,6 +235,10 @@ public class ShootyShooty : NetworkBehaviour
                 //Bullet Instance
                 var bullet = Instantiate(Bullet, Gunlight.transform.position, Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
 
+                //Link Bullet and impact
+                if (hit.transform.tag != "Player")
+                    bullet.GetComponent<bulletScript>().id = BM.NewHit(hit, hit.transform.gameObject);
+
                 // Gets a vector that points from the player's position to the target's. (from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
                 var heading = hit.point - Gunlight.transform.position;
                 var distance = heading.magnitude;
@@ -205,6 +246,7 @@ public class ShootyShooty : NetworkBehaviour
 
                 bullet.GetComponent<Rigidbody>().AddForce(direction * bulletSpeed);
 
+                //Get shot
                 if (hit.transform.tag == "Player" && hit.collider.isTrigger && !hit.transform.GetComponent<PhotonView>().isMine)
                 {
                     hit.transform.GetComponent<PhotonView>()
@@ -218,6 +260,10 @@ public class ShootyShooty : NetworkBehaviour
                     hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 500, hit.point);
                     BloodParticles(hit);
                 }
+                else if (hit.transform.tag == "casing")
+                {
+                    hit.transform.GetComponent<Rigidbody>().AddForce(200 * transform.forward);
+                }
                 else if (NM.godBullets)
                 {
                     var i = NM.everything.IndexOf(hit.transform.gameObject);
@@ -225,11 +271,6 @@ public class ShootyShooty : NetworkBehaviour
                         NM.pv.RPC("KillLevel", PhotonTargets.All, i);
                     else
                         Debug.Log("Couldn't find that item!" + hit.transform.gameObject.ToString());
-                }
-
-                if (hit.transform.gameObject.layer == 10)
-                {
-                    LevelParticles(hit, hit.transform.gameObject);
                 }
             }
 
@@ -252,27 +293,6 @@ public class ShootyShooty : NetworkBehaviour
         }
 
         CalcInaccuracy();
-    }
-
-    private void LevelParticles(RaycastHit hit, GameObject other)
-    {
-        var c = Instantiate(levelImpact, hit.point, hit.transform.rotation) as GameObject;
-        var othercol = other.GetComponent<Renderer>().material.color * 0.5f;
-        //Texture2D texMap = (Texture2D)hit.transform.GetComponent<Renderer>().material.mainTexture;
-        //var othercol = texMap.GetPixel((int)hit.textureCoord2.x, (int)hit.textureCoord2.y);
-
-        c.GetComponent<Renderer>().material.color = othercol;
-        //var levelhit = c.transform.GetChild(0);
-        //levelhit.GetComponent<Renderer>().material.color = othercol;
-        c.GetComponent<ParticleSystemRenderer>().material.color = othercol;
-
-        impactList.Add(c);
-
-        if (impactList.Count > maxImpacts)
-        {
-            Destroy(impactList[0]);
-            impactList.RemoveAt(0);
-        }
     }
 
     private void BloodParticles(RaycastHit hit)
@@ -327,7 +347,7 @@ public class ShootyShooty : NetworkBehaviour
         CH2.transform.localPosition = Vector3.Lerp(-inaccPos, -accPos, l);
     }
 
-    public float map(float OldMin, float OldMax, float NewMin, float NewMax, float OldValue)
+    public float Map(float OldMin, float OldMax, float NewMin, float NewMax, float OldValue)
     {
         float oldRange = (OldMax - OldMin);
         float newRange = (NewMax - NewMin);
@@ -369,7 +389,7 @@ public class ShootyShooty : NetworkBehaviour
             shootInnac -= (inacDecayRate * Time.deltaTime);
         }
 
-        CHPlacement = map(0.0f, maxInnac, 1, 0, inaccuracy);
+        CHPlacement = Map(0.0f, maxInnac, 1, 0, inaccuracy);
         UpdateCrosshair(CHPlacement);
 
         inaccuracy = moveInac + shootInnac;

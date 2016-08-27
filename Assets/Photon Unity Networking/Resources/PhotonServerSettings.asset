@@ -51,4 +51,7 @@ MonoBehaviour:
   - RestoreLevel
   - SendChatMessage
   - StuffGun
+  - SetTimeScale
+  - SlowMo
+  - SlowMoSet
   DisableAutoOpenWizard: 1

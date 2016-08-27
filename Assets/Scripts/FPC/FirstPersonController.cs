@@ -218,7 +218,7 @@ public class FirstPersonController : MonoBehaviour
 
         m_MouseLook.UpdateCursorLock();
 
-        if (Input.GetKeyDown(KeyCode.LeftShift) && NM.blink && blinks > 0 && !(blinkLerp <= 1))
+        if (Input.GetKeyDown(KeyCode.E) && NM.blink && blinks > 0 && !(blinkLerp <= 1))
         {
             blinkFrom = transform.position;
             blinkVel = transform.position += new Vector3(m_MoveDir.x, 0, m_MoveDir.z) * 2;
@@ -317,7 +317,7 @@ public class FirstPersonController : MonoBehaviour
         anim.SetBool("IsRunning", !m_IsWalking);
 
         bool waswalking = m_IsWalking;
-        m_IsWalking = !Input.GetKey(KeyCode.LeftShift);
+        m_IsWalking = true; //!Input.GetKey(KeyCode.LeftShift);
 
         if (SS.reloading || NM.blink) //Zek code
             m_IsWalking = true;

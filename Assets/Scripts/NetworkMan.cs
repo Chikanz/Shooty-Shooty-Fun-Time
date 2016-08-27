@@ -80,8 +80,12 @@ public class NetworkMan : Photon.MonoBehaviour
 
     private readonly char[] trimings = { '+', ' ' };
 
+    public enum Abilities { Sprint, Blink, SlowMo };
+
+    public Abilities Ability = Abilities.Sprint;
+
     //FX
-    private const int FxCount = 6;
+    private const int FxCount = 7;
 
     public bool lowgrav;
     public bool JumpAcc;
@@ -89,12 +93,14 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool godBullets;
     public bool blink;
     public bool stuffGun;
+    public bool slowMo;
 
     // Use this for initialization
     private void Start()
     {
+        //Time.fixedDeltaTime = 0.01f;
         //PhotonNetwork.offlineMode = true;
-        PhotonNetwork.logLevel = PhotonLogLevel.Full;
+        //PhotonNetwork.logLevel = PhotonLogLevel.Full;
         PhotonNetwork.ConnectUsingSettings("0.1");
         pv = GetComponent<PhotonView>();
         FXList = transform.Find("/UI Groups/Main UI/FX Text").GetComponent<Text>();
@@ -244,6 +250,7 @@ public class NetworkMan : Photon.MonoBehaviour
             RestartEvent();
     }
 
+    //Modifier Switches
     [PunRPC]
     public void SendChatMessage(string text)
     {
@@ -388,12 +395,28 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         player.GetComponent<FirstPersonController>().blinks = 0;
         blink = b;
+        //Ability = b ? Abilities.Blink : Abilities.Sprint;
     }
 
     [PunRPC]
     public void StuffGun(bool b)
     {
         stuffGun = b;
+    }
+
+    [PunRPC]
+    public void SlowMo(bool b)
+    {
+        slowMo = b;
+        player.GetComponentInChildren<ShootyShooty>().slowMoJuice = 0;
+    }
+
+    //Detailed modifier RPCs
+    [PunRPC]
+    public void SlowMoSet(float scale)
+    {
+        Time.timeScale = scale;
+        Time.fixedDeltaTime = 0.02F * Time.timeScale;
     }
 
     [PunRPC]
@@ -531,6 +554,10 @@ public class NetworkMan : Photon.MonoBehaviour
                 pv.RPC("StuffGun", PhotonTargets.All, flip);
                 break;
 
+            case 6:
+                pv.RPC("SlowMo", PhotonTargets.All, flip);
+                break;
+
             default:
                 Debug.Log("FXFlip Out of bounds");
                 break;
@@ -576,19 +603,19 @@ public class NetworkMan : Photon.MonoBehaviour
                 break;
 
             case 3:
-                return "Deagle";
-                break;
-
-            case 4:
                 return "Mum's Spaghetti";
                 break;
 
-            case 5:
+            case 4:
                 return "Blink";
                 break;
 
-            case 6:
+            case 5:
                 return "Stuff Gun";
+                break;
+
+            case 6:
+                return "Slow Mo";
                 break;
 
             default:

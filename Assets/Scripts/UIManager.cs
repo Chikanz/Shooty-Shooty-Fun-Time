@@ -7,7 +7,13 @@ public class UIManager : MonoBehaviour
     private NetworkMan NM;
     private GameObject Player;
     private FirstPersonController FPC;
+    private ShootyShooty SS;
 
+    public Image Rslider;
+    public Canvas SlowmoCanvas;
+
+    public Canvas AmmoCountCanvas;
+    public Text AmmoCount;
     public Canvas BlinkCanvas;
     public Image[] blinkImages;
     public Color blinkActiveColor;
@@ -25,15 +31,14 @@ public class UIManager : MonoBehaviour
     {
         if (canUpdate)
         {
+            AmmoCount.text = SS.inClip.ToString();
+
+            SlowmoCanvas.enabled = NM.slowMo;
+            Rslider.fillAmount = SS.Map(0.0f, SS.slowMoMax, 0.0f, 1.0f, SS.slowMoJuice);
+
+            BlinkCanvas.enabled = NM.blink;
             if (NM.blink)
-            {
-                BlinkCanvas.enabled = true;
                 Displayblinks();
-            }
-            else
-            {
-                BlinkCanvas.enabled = false;
-            }
         }
     }
 
@@ -56,8 +61,13 @@ public class UIManager : MonoBehaviour
 
     private void Init()
     {
-        Player = NM.player;
-        FPC = Player.GetComponent<FirstPersonController>();
-        canUpdate = true;
+        if (!canUpdate)
+        {
+            canUpdate = true;
+            AmmoCountCanvas.enabled = true;
+            Player = NM.player;
+            FPC = Player.GetComponent<FirstPersonController>();
+            SS = Player.GetComponentInChildren<ShootyShooty>();
+        }
     }
 }
