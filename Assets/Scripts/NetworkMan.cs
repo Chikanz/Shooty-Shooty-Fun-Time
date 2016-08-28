@@ -28,6 +28,11 @@ public class NetworkMan : Photon.MonoBehaviour
     public Animator CHAnim;
     public Canvas CHCanvas;
 
+    public GameObject innerStuff;
+    public GameObject shootyBallStuff;
+
+    private GameObject ShootyBall;
+
     public List<GameObject> everything;
     //private List<string> DestroyedObjs = new List<string>();
 
@@ -78,6 +83,9 @@ public class NetworkMan : Photon.MonoBehaviour
     private float normalInnac;
     private float normalInnacDecay;
 
+    public int SBMaxForce = 2000;
+    public int SBNormForce = 500;
+
     private readonly char[] trimings = { '+', ' ' };
 
     public bool MDeath = true; //Move death - moves to spawn, doesn't restart
@@ -98,11 +106,6 @@ public class NetworkMan : Photon.MonoBehaviour
 
     //Gamemode
     public bool FootBall = true;
-
-    public GameObject innerStuff;
-    public GameObject shootyBallStuff;
-
-    private GameObject ShootyBall;
 
     // Use this for initialization
     private void Start()
@@ -409,6 +412,7 @@ public class NetworkMan : Photon.MonoBehaviour
         ss.maxClip = b ? 1 : 10;
         ss.inClip = b ? 1 : 10;
         ss.bulletDamage = b ? 4 : 1;
+        ss.ShootyBallForce = b ? SBMaxForce : SBNormForce;
     }
 
     [PunRPC]
@@ -556,6 +560,8 @@ public class NetworkMan : Photon.MonoBehaviour
         }
 
         List<int> pastIndexes = new List<int>();
+        if (gmSelect == 0) //Exclusions
+            pastIndexes.Add(2);
 
         while (pastIndexes.Count != numFX)
         {
