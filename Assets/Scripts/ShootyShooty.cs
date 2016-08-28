@@ -98,6 +98,8 @@ public class ShootyShooty : NetworkBehaviour
     public bool slowMoInUse = false;
     public float slowMoMulti = 0.4f;
 
+    public int ShootyBallForce = 500;
+
     private string[] stuffs =
     {
         "arrow",
@@ -236,8 +238,17 @@ public class ShootyShooty : NetworkBehaviour
                 var bullet = Instantiate(Bullet, Gunlight.transform.position, Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
 
                 //Link Bullet and impact
-                if (hit.transform.tag != "Player")
-                    bullet.GetComponent<bulletScript>().id = BM.NewHit(hit, hit.transform.gameObject);
+                if (hit.transform.tag != "Player" && hit.transform.gameObject.layer != 12 && hit.transform.gameObject.layer != 11)
+                {
+                    var BS = bullet.GetComponent<bulletScript>();
+                    BS.id = BM.NewHit(hit, hit.transform.gameObject);
+                    BS.hitPos = hit.point;
+                }
+
+                if (hit.transform.gameObject.layer == 11)
+                {
+                    hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * ShootyBallForce, hit.point);
+                }
 
                 // Gets a vector that points from the player's position to the target's. (from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
                 var heading = hit.point - Gunlight.transform.position;

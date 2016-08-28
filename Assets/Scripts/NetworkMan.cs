@@ -80,12 +80,13 @@ public class NetworkMan : Photon.MonoBehaviour
 
     private readonly char[] trimings = { '+', ' ' };
 
-    public enum Abilities { Sprint, Blink, SlowMo };
-
-    public Abilities Ability = Abilities.Sprint;
+    public bool MDeath = true; //Move death - moves to spawn, doesn't restart
 
     //FX
     private const int FxCount = 7;
+
+    private const int GmCount = 1;
+    private int gmSelect = -1;
 
     public bool lowgrav;
     public bool JumpAcc;
@@ -94,6 +95,14 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool blink;
     public bool stuffGun;
     public bool slowMo;
+
+    //Gamemode
+    public bool FootBall = true;
+
+    public GameObject innerStuff;
+    public GameObject shootyBallStuff;
+
+    private GameObject ShootyBall;
 
     // Use this for initialization
     private void Start()
@@ -182,25 +191,32 @@ public class NetworkMan : Photon.MonoBehaviour
             newRoundTimer -= Time.deltaTime;
             FXCountdown.text = newRoundTimer.ToString("#");
         }
-        else if (newRoundTimer <= 0.0f && playerLocked)
+        else if (newRoundTimer <= 0.0f && playerLocked) //New Round Start
         {
             LockPlayer(false);
             FXString = "";
             FXList.text = "";
             FXCountdown.text = "";
             shotcaller = false;
-            roundEnded = false;
+
+            if (gmSelect == 0)
+            {
+                ShootyBall.GetComponent<Rigidbody>().useGravity = true;
+            }
+            //roundEnded = false;
         }
 
         //End Round Timer
         if (PhotonNetwork.inRoom)
         {
-            if (init.died)
+            //if (init.died)
+            if (roundEnded)
                 endRoundTimer -= Time.deltaTime;
             endRoundTimer = Mathf.Clamp(endRoundTimer, 0, 10);
 
-            if (endRoundTimer <= 0 && init.died && shotcaller)
+            if (endRoundTimer <= 0 && roundEnded && shotcaller)
             {
+                roundEnded = false;
                 pv.RPC("RestartRound", PhotonTargets.All, null);
             }
         }
@@ -250,6 +266,13 @@ public class NetworkMan : Photon.MonoBehaviour
             RestartEvent();
     }
 
+    public void MoveToSpawn()
+    {
+        player.GetComponent<Initalize>().FPcam.rotation = spawn.rotation;
+        player.transform.position = spawn.position;
+        player.transform.rotation = spawn.rotation;
+    }
+
     //Modifier Switches
     [PunRPC]
     public void SendChatMessage(string text)
@@ -284,9 +307,7 @@ public class NetworkMan : Photon.MonoBehaviour
         player.GetComponentInChildren<ShootyShooty>().outtaBullets = false;
         player.GetComponentInChildren<ShootyShooty>().anim.SetTrigger("ForceIdle");
 
-        player.GetComponent<Initalize>().FPcam.rotation = spawn.rotation;
-        player.transform.position = spawn.position;
-        player.transform.rotation = spawn.rotation;
+        MoveToSpawn();
 
         LockPlayer(true);
 
@@ -432,6 +453,23 @@ public class NetworkMan : Photon.MonoBehaviour
             obj.SetActive(true);
     }
 
+    //Game mode RPCs
+    [PunRPC]
+    public void Football(bool b)
+    {
+        FootBall = b;
+        innerStuff.gameObject.SetActive(!b);
+        shootyBallStuff.gameObject.SetActive(b);
+        MDeath = b;
+        player.GetComponentInChildren<FirstPersonController>().blinkSpeed = b ? 2 : 4; ;
+
+        if (b && shotcaller)
+            ShootyBall = PhotonNetwork.Instantiate("Shooty Ball", SpawnPoints[4].position, Quaternion.identity, 0);
+        else if (!b && shotcaller)
+            Destroy(ShootyBall.gameObject);
+    }
+
+    //Other RPCs
     [PunRPC]
     public void FinishedCallingShots(string f)
     {
@@ -510,6 +548,13 @@ public class NetworkMan : Photon.MonoBehaviour
         else
             numFX = 3;
 
+        if (Random.value > 0.0f)
+        {
+            gmSelect = Random.Range(0, GmCount);
+            SetGameMode(gmSelect, true);
+            FXString += GetGmString(gmSelect) + "\n";
+        }
+
         List<int> pastIndexes = new List<int>();
 
         while (pastIndexes.Count != numFX)
@@ -577,6 +622,12 @@ public class NetworkMan : Photon.MonoBehaviour
 
     private void ResetFX()
     {
+        if (gmSelect != -1)
+        {
+            SetGameMode(gmSelect, false);
+            gmSelect = -1;
+        }
+
         if (godBullets)
             pv.RPC("RestoreLevel", PhotonTargets.All, null);
 
@@ -631,6 +682,27 @@ public class NetworkMan : Photon.MonoBehaviour
                 //    return "Alcohol";
                 //    break;
         }
+    }
+
+    private void SetGameMode(int i, bool b)
+    {
+        switch (i)
+        {
+            case 0:
+                pv.RPC("Football", PhotonTargets.All, b);
+                break;
+        }
+    }
+
+    private string GetGmString(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                return "Shooty Ball";
+                break;
+        }
+        return "Uh oh";
     }
 
     public void LockPlayer(bool l)

@@ -54,4 +54,5 @@ MonoBehaviour:
   - SetTimeScale
   - SlowMo
   - SlowMoSet
+  - Football
   DisableAutoOpenWizard: 1

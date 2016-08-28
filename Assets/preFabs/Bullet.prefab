@@ -8,12 +8,12 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 451008}
+  - 65: {fileID: 6566132}
+  - 54: {fileID: 5478438}
   - 33: {fileID: 3390806}
   - 23: {fileID: 2380560}
-  - 54: {fileID: 5478438}
   - 114: {fileID: 11427468}
   - 108: {fileID: 10884160}
-  - 65: {fileID: 6566132}
   - 96: {fileID: 96000011104519928}
   m_Layer: 0
   m_Name: Bullet
@@ -29,7 +29,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 124982}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071067}
-  m_LocalPosition: {x: 3.4334245, y: 11.125549, z: 42.1728}
+  m_LocalPosition: {x: 22.812218, y: 6.631, z: 11.484}
   m_LocalScale: {x: 0.00034448586, y: 0.00034448592, z: 0.00034448592}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
   m_Children: []
@@ -138,11 +138,13 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 124982}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 906a6c965d3703d49b8976cf59bfe86c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  id: 0
+  hitPos: {x: 0, y: 0, z: 0}
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

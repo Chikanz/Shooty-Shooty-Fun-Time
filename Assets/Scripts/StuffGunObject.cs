@@ -32,6 +32,9 @@ public class StuffGunObject : MonoBehaviour
 
     public void OnCollisionEnter(Collision c)
     {
+        if (NM == null)
+            NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+
         if (c.gameObject.tag == "Player" && TTL < 0)
         {
             if (c.gameObject.GetComponent<Initalize>().photonView.isMine)

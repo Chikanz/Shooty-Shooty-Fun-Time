@@ -4,25 +4,15 @@ using UnityEngine;
 
 public class BulletManager : MonoBehaviour
 {
-    //private List<GameObject> impactList = new List<GameObject>();
     private List<MeshRenderer> rendererList = new List<MeshRenderer>();
-
     private List<ParticleSystem> particleList = new List<ParticleSystem>();
-    public GameObject LevelHit;
+    public int maxImpacts = 2;
 
-    //public Queue<GameObject> hitQueue = new Queue<GameObject>();
-    private int maxImpacts = 100;
+    public GameObject LevelHit;
 
     // Use this for initialization
     private void Start()
     {
-        //impactList.Add(c);
-
-        //if (impactList.Count > maxImpacts)
-        //{
-        //    Destroy(impactList[0]);
-        //    impactList.RemoveAt(0);
-        //}
     }
 
     // Update is called once per frame
@@ -32,12 +22,8 @@ public class BulletManager : MonoBehaviour
 
     public void CreateNextHit(int id)
     {
-        //GameObject hit = impactList[id];
         rendererList[id].enabled = true;
         particleList[id].Play();
-
-        //float t2 = Time.realtimeSinceStartup;
-        //Debug.Log("Create next hit: " + (t2 - t1).ToString());
     }
 
     public int NewHit(RaycastHit hit, GameObject other)
@@ -50,6 +36,13 @@ public class BulletManager : MonoBehaviour
         var othercol = other.GetComponent<Renderer>().material.color * 0.5f;
         c.GetComponent<Renderer>().material.color = othercol;
         c.GetComponent<ParticleSystemRenderer>().material.color = othercol;
+
+        if (rendererList.Count > maxImpacts) //Cap
+        {
+            Destroy(rendererList[0]);
+            rendererList.RemoveAt(0);
+            particleList.RemoveAt(0);
+        }
 
         return rendererList.Count - 1;
     }

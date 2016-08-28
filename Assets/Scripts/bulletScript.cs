@@ -3,8 +3,11 @@ using UnityEngine;
 
 public class bulletScript : MonoBehaviour
 {
-    private BulletManager BM;
     public int id;
+    public Vector3 hitPos;
+
+    private BulletManager BM;
+    private float detectDistance;
 
     // Use this for initialization
     private void Start()
@@ -16,23 +19,19 @@ public class bulletScript : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        if (Vector3.Distance(transform.position, hitPos) <= detectDistance)
+        {
+            //if (BM == null)
+            //    BM = GameObject.Find("Bullet Manager").GetComponent<BulletManager>();
+
+            BM.CreateNextHit(id);
+            Destroy(gameObject);
+        }
+
+        detectDistance = Time.timeScale == 1 ? 2 : 0.4f; //enable more accuracy during slowmo for more believeable impacts
     }
 
     public void OnTriggerEnter(Collider other)
     {
-        //if (other.tag == "LevelHit")
-        //{
-        //    other.GetComponent<MeshRenderer>().enabled = true;
-        //    other.GetComponent<ParticleSystem>().Play();
-        //}
-
-        if (BM == null)
-            BM = GameObject.Find("Bullet Manager").GetComponent<BulletManager>();
-
-        if (other.tag != "Player")
-        {
-            BM.CreateNextHit(id);
-            Destroy(gameObject);
-        }
     }
 }

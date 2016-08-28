@@ -11,6 +11,9 @@ TagManager:
   - OuttaBounds
   - Stuff
   - LevelHit
+  - GodBullets
+  - JumpAcc
+  - BEVS
   layers:
   - Default
   - TransparentFX
@@ -23,8 +26,8 @@ TagManager:
   - Gun
   - Spawn Points
   - Level
-  - 
-  - 
+  - ShootyBall
+  - ShootyBounds
   - 
   - 
   - 

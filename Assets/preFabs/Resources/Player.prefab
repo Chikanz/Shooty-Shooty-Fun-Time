@@ -122,7 +122,7 @@ GameObject:
   - 65: {fileID: 6510898}
   - 23: {fileID: 2392942}
   - 65: {fileID: 6576020}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Body
   m_TagString: Player
   m_Icon: {fileID: 0}

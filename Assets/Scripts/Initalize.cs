@@ -218,6 +218,12 @@ public class Initalize : Photon.MonoBehaviour
         if (died)
             return;
 
+        if (NM.MDeath)
+        {
+            NM.MoveToSpawn();
+            return;
+        }
+
         if (!NM.roundEnded)
         {
             NM.pv.RPC(NM.playerNumber == 0 ? "P2Up" : "P1Up", PhotonTargets.All, null);

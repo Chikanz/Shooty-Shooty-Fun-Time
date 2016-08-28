@@ -102,6 +102,8 @@ public class FirstPersonController : MonoBehaviour
     public int blinks;
     private float blinkTimer;
 
+    public int blinkSpeed = 4;
+
     // Use this for initialization
     private void Start()
     {
@@ -229,7 +231,7 @@ public class FirstPersonController : MonoBehaviour
         if (blinkLerp <= 1)
         {
             transform.position = Vector3.Lerp(blinkFrom, blinkVel, blinkLerp);
-            blinkLerp += Time.deltaTime * 4;
+            blinkLerp += Time.deltaTime * blinkSpeed;
         }
         if (blinks < 3 && blinkTimer > 3)
         {
