@@ -16,7 +16,7 @@ public class Football : MonoBehaviour
     {
     }
 
-    private void OnCollisionEnter(Collision other)
+    private void OnTriggerEnter(Collider other)
     {
         if (!NM.roundEnded)
         {

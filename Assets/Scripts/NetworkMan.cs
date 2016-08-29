@@ -53,7 +53,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public PhotonView pv;
 
     private FirstPersonController FPC;
-    private ShootyShooty ss;
+    public ShootyShooty ss;
     private Initalize init;
 
     public InputField username;
@@ -563,7 +563,7 @@ public class NetworkMan : Photon.MonoBehaviour
         if (gmSelect == 0) //Exclusions
             pastIndexes.Add(2);
 
-        while (pastIndexes.Count != numFX)
+        while (pastIndexes.Count <= numFX)
         {
             int FXindex = Random.Range(0, FxCount);
             if (pastIndexes.Contains(FXindex))
@@ -573,7 +573,7 @@ public class NetworkMan : Photon.MonoBehaviour
             flipFX(FXindex, true);
             FXString += GetFXText(FXindex) + " + ";
         }
-
+        pastIndexes.Clear();
         FXString = FXString.TrimEnd(trimings);
     }
 

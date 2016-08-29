@@ -198,6 +198,7 @@ GameObject:
   - 114: {fileID: 114000010054332264}
   - 114: {fileID: 114000011590070558}
   - 114: {fileID: 114000010027399444}
+  - 168: {fileID: 168000013680855772}
   m_Layer: 0
   m_Name: FirstPersonCharacter
   m_TagString: MainCamera
@@ -721,7 +722,7 @@ BoxCollider:
   m_GameObject: {fileID: 195410}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -1162,6 +1163,7 @@ MonoBehaviour:
   slowMoMax: 3
   slowMoInUse: 0
   slowMoMulti: 0.4
+  ShootyBallForce: 500
 --- !u!114 &11468368
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1267,6 +1269,7 @@ MonoBehaviour:
   friction: 0.5
   desiredMove: {x: 0, y: 0, z: 0}
   blinks: 0
+  blinkSpeed: 4
 --- !u!114 &11496502
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3203,3 +3206,14 @@ MonoBehaviour:
     color: {r: 0, g: 1, b: 0, a: 1}
     amount: 0
   m_Shader: {fileID: 4800000, guid: 136ab50fe2b9ad64d9c22adc3668abb7, type: 3}
+--- !u!168 &168000013680855772
+AudioEchoFilter:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 184670}
+  m_Enabled: 0
+  m_Delay: 200
+  m_DecayRatio: 0.7
+  m_WetMix: 1
+  m_DryMix: 1

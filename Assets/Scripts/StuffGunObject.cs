@@ -35,6 +35,15 @@ public class StuffGunObject : MonoBehaviour
         if (NM == null)
             NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
 
+        if (NM.FootBall)
+        {
+            if (c.gameObject.GetComponent<Rigidbody>())
+            {
+                c.gameObject.GetComponent<Rigidbody>()
+                    .AddForceAtPosition(NM.ss.ShootyBallForce * transform.forward, c.contacts[0].point);
+            }
+        }
+
         if (c.gameObject.tag == "Player" && TTL < 0)
         {
             if (c.gameObject.GetComponent<Initalize>().photonView.isMine)
