@@ -21,9 +21,9 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public int playerNumber;
 
-    public Vector2 Score = new Vector2(0, 0);
+    public int Score;
 
-    public Text ScoreText;
+    //public Text ScoreText;
 
     public Animator CHAnim;
     public Canvas CHCanvas;
@@ -53,7 +53,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public PhotonView pv;
 
     private FirstPersonController FPC;
-    public ShootyShooty ss;
+    public ShootyShooty SS;
     private Initalize init;
 
     public InputField username;
@@ -90,6 +90,9 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public bool MDeath = true; //Move death - moves to spawn, doesn't restart
 
+    public bool slowMoP1;
+    public bool slowMoP2;
+
     //FX
     private const int FxCount = 7;
 
@@ -122,7 +125,7 @@ public class NetworkMan : Photon.MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        ScoreText.text = Score[0] + " - " + Score[1];
+        //ScoreText.text = Score[0] + " - " + Score[1];
 
         connectionText.text = PhotonNetwork.connectionStateDetailed.ToString() + "   " + PhotonNetwork.GetPing();
 
@@ -175,10 +178,7 @@ public class NetworkMan : Photon.MonoBehaviour
             if (toSend == "")
                 return;
 
-            if (playerNumber == 0)
-                color = ColToHex(P1Col);
-            else
-                color = ColToHex(P2Col);
+            color = ColToHex(playerNumber == 0 ? P1Col : P2Col);
 
             toSend = toSend.Insert(0, "<color=" + color + ">");
             toSend = toSend.Insert(toSend.Length, "</color>");
@@ -200,12 +200,13 @@ public class NetworkMan : Photon.MonoBehaviour
             FXString = "";
             FXList.text = "";
             FXCountdown.text = "";
-            shotcaller = false;
 
-            if (gmSelect == 0)
+            if (gmSelect == 0 && shotcaller)
             {
                 ShootyBall.GetComponent<Rigidbody>().useGravity = true;
             }
+
+            shotcaller = false;
             //roundEnded = false;
         }
 
@@ -260,10 +261,10 @@ public class NetworkMan : Photon.MonoBehaviour
     public void Spawn()
     {
         player = PhotonNetwork.Instantiate("Player", spawn.position, spawn.rotation, 0);
-        ss = player.GetComponentInChildren<ShootyShooty>();
+        SS = player.GetComponentInChildren<ShootyShooty>();
         init = player.GetComponentInChildren<Initalize>();
-        normalInnac = ss.maxInnac;
-        normalInnacDecay = ss.spamInnac;
+        normalInnac = SS.maxInnac;
+        normalInnacDecay = SS.spamInnac;
 
         if (RestartEvent != null)
             RestartEvent();
@@ -333,7 +334,7 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         roundEnded = true;
         WinText.text = "<color=" + ColToHex(P1Col) + ">Red Wins!</color>";
-        Score[0] += 1;
+        Score -= 1;
     }
 
     [PunRPC]
@@ -341,16 +342,21 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         roundEnded = true;
         WinText.text = "<color=" + ColToHex(P2Col) + ">Blue Wins!</color>";
-        Score[1] += 1;
+        Score += 1;
     }
 
     [PunRPC]
     public void LowGrav(bool lg)
     {
-        lowgrav = lg;
+        lowGrav = lg;
         float gravity = -9.8f;
         if (lg)
-            gravity = -3f;
+        {
+            if (gmSelect == 0)
+                gravity = -5f;
+            else
+                gravity = -3f;
+        }
 
         Physics.gravity = new Vector3(0, gravity, 0);
     }
@@ -362,12 +368,12 @@ public class NetworkMan : Photon.MonoBehaviour
         drunk = d;
         if (d)
         {
-            ss.StartCoroutine("drunkInnaccuracy");
+            SS.StartCoroutine("drunkInnaccuracy");
         }
         else
         {
-            ss.drunkinnac = false;
-            ss.StopCoroutine("drunkInnaccuracy");
+            SS.drunkinnac = false;
+            SS.StopCoroutine("drunkInnaccuracy");
         }
     }
 
@@ -388,15 +394,15 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         if (b)
         {
-            ss.maxInnac = deagleInnac;
-            ss.spamInnac = 99;
-            ss.bulletDamage = 2;
+            SS.maxInnac = deagleInnac;
+            SS.spamInnac = 99;
+            SS.bulletDamage = 2;
         }
         else
         {
-            ss.maxInnac = normalInnac;
-            ss.spamInnac = normalInnacDecay;
-            ss.bulletDamage = 1;
+            SS.maxInnac = normalInnac;
+            SS.spamInnac = normalInnacDecay;
+            SS.bulletDamage = 1;
         }
     }
 
@@ -409,10 +415,10 @@ public class NetworkMan : Photon.MonoBehaviour
     [PunRPC]
     public void MumsSpaghetti(bool b)
     {
-        ss.maxClip = b ? 1 : 10;
-        ss.inClip = b ? 1 : 10;
-        ss.bulletDamage = b ? 4 : 1;
-        ss.ShootyBallForce = b ? SBMaxForce : SBNormForce;
+        SS.maxClip = b ? 1 : 10;
+        SS.inClip = b ? 1 : 10;
+        SS.bulletDamage = b ? 4 : 1;
+        SS.ShootyBallForce = b ? SBMaxForce : SBNormForce;
     }
 
     [PunRPC]
@@ -467,10 +473,12 @@ public class NetworkMan : Photon.MonoBehaviour
         MDeath = b;
         player.GetComponentInChildren<FirstPersonController>().blinkSpeed = b ? 2 : 4; ;
 
-        if (b && shotcaller)
+        if (!shotcaller) return; //Shot Callers only
+
+        if (b)
             ShootyBall = PhotonNetwork.Instantiate("Shooty Ball", SpawnPoints[4].position, Quaternion.identity, 0);
-        else if (!b && shotcaller)
-            Destroy(ShootyBall.gameObject);
+        else
+            PhotonNetwork.Destroy(ShootyBall.gameObject);
     }
 
     //Other RPCs

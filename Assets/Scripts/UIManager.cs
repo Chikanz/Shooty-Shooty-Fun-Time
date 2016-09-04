@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,6 +20,8 @@ public class UIManager : MonoBehaviour
     public Color blinkActiveColor;
     public Color blinkInactiveColor;
 
+    public Image[] ScoreImages;
+
     private bool canUpdate;
 
     private void Start()
@@ -29,6 +32,8 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        UpdateScoreImages(NM.Score);
+
         if (canUpdate)
         {
             AmmoCount.text = SS.inClip.ToString();
@@ -56,6 +61,35 @@ public class UIManager : MonoBehaviour
             {
                 blinkImages[i].color = blinkActiveColor;
             }
+        }
+    }
+
+    public void UpdateScoreImages(int score)
+    {
+        //Clear Score Images
+        for (int i = 0; i < ScoreImages.Count(); i++)
+        {
+            ScoreImages[i].enabled = false;
+        }
+
+        //Translate score to array
+        if (score == 0)
+            return;
+        if (score > 0)
+            score += 3;
+        if (score < 0)
+            score += 4;
+
+        //Turn on score
+        for (int j = 0; j < ScoreImages.Count(); j++)
+        {
+            if (j > 3 && j <= score)
+            {
+                ScoreImages[j].enabled = true;
+            }
+
+            if (j < 4 && j >= score)
+                ScoreImages[j].enabled = true;
         }
     }
 

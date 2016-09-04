@@ -104,6 +104,11 @@ public class FirstPersonController : MonoBehaviour
 
     public int blinkSpeed = 4;
 
+    public float CamKick = 0f;
+    public float Kick = 2f;
+    public float KickDecay = 1;
+    public float KickDecayStart = 1;
+
     // Use this for initialization
     private void Start()
     {
@@ -220,13 +225,16 @@ public class FirstPersonController : MonoBehaviour
 
         m_MouseLook.UpdateCursorLock();
 
-        if (Input.GetKeyDown(KeyCode.E) && NM.blink && blinks > 0 && !(blinkLerp <= 1))
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            blinkFrom = transform.position;
-            blinkVel = transform.position += new Vector3(m_MoveDir.x, 0, m_MoveDir.z) * 2;
-            blinkLerp = 0;
-            blinks -= 1;
-            blinkTimer = 0;
+            if (NM.blink && blinks > 0)// && !(blinkLerp <= 1))
+            {
+                blinkFrom = transform.position;
+                blinkVel = transform.position += new Vector3(m_MoveDir.x, 0, m_MoveDir.z) * 2;
+                blinkLerp = 0;
+                blinks -= 1;
+                blinkTimer = 0;
+            }
         }
         if (blinkLerp <= 1)
         {
@@ -304,7 +312,13 @@ public class FirstPersonController : MonoBehaviour
             newCameraPosition = m_Camera.transform.localPosition;
             newCameraPosition.y = m_OriginalCameraPosition.y - m_JumpBob.Offset();
         }
+
         m_Camera.transform.localPosition = newCameraPosition;
+    }
+
+    public void KickCam()
+    {
+        CamKick += Kick;
     }
 
     private void GetInput(out float speed)
@@ -346,6 +360,14 @@ public class FirstPersonController : MonoBehaviour
     private void RotateView()
     {
         m_MouseLook.LookRotation(transform, m_Camera.transform);
+        if (CamKick >= 0)
+        {
+            m_Camera.transform.rotation *= Quaternion.Euler(-CamKick, 0, 0);
+            CamKick -= (Time.deltaTime * KickDecay);
+            KickDecay *= 2;
+        }
+        else
+            KickDecay = KickDecayStart;
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)

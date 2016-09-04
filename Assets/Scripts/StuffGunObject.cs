@@ -5,7 +5,7 @@ public class StuffGunObject : MonoBehaviour
 {
     private NetworkMan NM;
     private int destroyed = 0;
-
+    public int stuffGunMulti = 2;
     public float TTL = 1; //Time till live
 
     private void Start()
@@ -37,10 +37,10 @@ public class StuffGunObject : MonoBehaviour
 
         if (NM.FootBall)
         {
-            if (c.gameObject.GetComponent<Rigidbody>())
+            if (c.gameObject.name == "Shooty Ball")
             {
                 c.gameObject.GetComponent<Rigidbody>()
-                    .AddForceAtPosition(NM.ss.ShootyBallForce * transform.forward, c.contacts[0].point);
+                    .AddForceAtPosition(NM.SS.ShootyBallForce * stuffGunMulti * transform.forward, c.contacts[0].point);
             }
         }
 

@@ -57,7 +57,7 @@ public class ShootyShooty : NetworkBehaviour
     private Vector3 prevPos;
 
     public GameObject player;
-    private FirstPersonController fpc;
+    private FirstPersonController FPC;
 
     public bool outtaBullets;
 
@@ -115,7 +115,7 @@ public class ShootyShooty : NetworkBehaviour
         Playerpv = player.GetComponent<PhotonView>();
         prevPos = transform.position;
         Gunlight = GetComponentInChildren<Light>();
-        fpc = player.GetComponent<FirstPersonController>();
+        FPC = player.GetComponent<FirstPersonController>();
 
         //Makey UI
         //var UIinst = Instantiate(UI) as GameObject;
@@ -130,7 +130,7 @@ public class ShootyShooty : NetworkBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R) && !reloading && inClip < maxClip && fpc.m_IsWalking)
+        if (Input.GetKeyDown(KeyCode.R) && !reloading && inClip < maxClip && FPC.m_IsWalking)
         {
             anim.SetTrigger("Reload");
             inClip = maxClip;
@@ -142,7 +142,7 @@ public class ShootyShooty : NetworkBehaviour
             && shootingEnabled
             && !reloading
             && inClip > 0
-            && fpc.m_IsWalking
+            && FPC.m_IsWalking
             && shootCoolDownTimer <= 0
             )
         {
@@ -150,6 +150,8 @@ public class ShootyShooty : NetworkBehaviour
             MakeCasing();
             gunSound.Play();
             muzzleFlash.Play();
+
+            FPC.KickCam();
 
             anim.SetTrigger("Shooting");
 
@@ -225,7 +227,6 @@ public class ShootyShooty : NetworkBehaviour
 
             RaycastHit hit;
 
-            Ray ray;
             var spray = transform.forward;
 
             spray.x += Random.Range(-inaccuracy, inaccuracy);
@@ -235,7 +236,9 @@ public class ShootyShooty : NetworkBehaviour
             if (Physics.Raycast(transform.position, spray, out hit, 300f))
             {
                 //Bullet Instance
-                var bullet = Instantiate(Bullet, Gunlight.transform.position, Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
+                var bullet = Instantiate(
+                    Bullet, Gunlight.transform.position,
+                    Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
 
                 //Link Bullet and impact
                 if (hit.transform.tag != "Player" && hit.transform.gameObject.layer != 12 && hit.transform.gameObject.layer != 11)
@@ -245,12 +248,14 @@ public class ShootyShooty : NetworkBehaviour
                     BS.hitPos = hit.point;
                 }
 
-                if (hit.transform.gameObject.layer == 11)
+                //ShootyBall
+                if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
                 {
                     hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * ShootyBallForce, hit.point);
                 }
 
-                // Gets a vector that points from the player's position to the target's. (from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
+                // Gets a vector that points from the player's position to the target's.
+                //(from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
                 var heading = hit.point - Gunlight.transform.position;
                 var distance = heading.magnitude;
                 var direction = heading / distance; // This is now the normalized direction.
@@ -371,18 +376,19 @@ public class ShootyShooty : NetworkBehaviour
     {
         inac = false; //Prove me wrong approachu desune
 
+        //Normal Case
+        if (FPC.velocity.magnitude > 10.5f)
+            inac = true;
+
+        if (FPC.m_Jumping)
+            inac = true;
+
         //Jump Case
         if (NM.JumpAcc)
         {
-            inac = !fpc.m_Jumping;
-            fpc.velocity.y = 1;
+            inac = !FPC.m_Jumping;
+            //FPC.velocity.y = 1;
         }
-        else if (fpc.m_Jumping)
-            inac = true;
-
-        //Normal Case
-        if (fpc.velocity.magnitude > 10.5f)
-            inac = true;
 
         //Global inaccuracy
         if (outtaBullets || coolDown || drunkinnac)

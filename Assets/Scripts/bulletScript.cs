@@ -7,12 +7,17 @@ public class bulletScript : MonoBehaviour
     public Vector3 hitPos;
 
     private BulletManager BM;
+    private NetworkMan NM;
+    private ShootyShooty SS;
+
     private float detectDistance;
 
     // Use this for initialization
     private void Start()
     {
         BM = GameObject.Find("Bullet Manager").GetComponent<BulletManager>();
+        NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+        SS = NM.SS;
         Destroy(gameObject, 5);
     }
 
@@ -21,9 +26,6 @@ public class bulletScript : MonoBehaviour
     {
         if (Vector3.Distance(transform.position, hitPos) <= detectDistance)
         {
-            //if (BM == null)
-            //    BM = GameObject.Find("Bullet Manager").GetComponent<BulletManager>();
-
             BM.CreateNextHit(id);
             Destroy(gameObject);
         }
@@ -33,5 +35,11 @@ public class bulletScript : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
+        if (other.gameObject.layer == 11)
+        {
+            if (SS.slowMoInUse)
+                other.transform.GetComponent<Rigidbody>().AddForce(transform.forward * SS.ShootyBallForce);
+            //other.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * SS.ShootyBallForce, other.contacts[0].point);
+        }
     }
 }
