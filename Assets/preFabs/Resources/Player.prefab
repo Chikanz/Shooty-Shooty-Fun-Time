@@ -270,8 +270,8 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 156986}
   m_LocalRotation: {x: 0, y: 1, z: -0, w: -0.00000016292068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 4.2848115, z: 1}
+  m_LocalPosition: {x: 0, y: 0.12, z: 0}
+  m_LocalScale: {x: 1, y: 4.044144, z: 1.0000005}
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
   m_Children: []
   m_Father: {fileID: 440968}
@@ -367,7 +367,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 178910}
   m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000016292068}
-  m_LocalPosition: {x: 1.55, y: -0.6199999, z: 1.8899999}
+  m_LocalPosition: {x: 1.55, y: -0.59472317, z: 1.89}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_Children:
@@ -1074,7 +1074,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hurtImageColor: {r: 0, g: 0, b: 0, a: 0}
   health: 4
-  FPcam: {fileID: 0}
+  FPcam: {fileID: 450018}
   flashColour: {r: 1, g: 0, b: 0, a: 1}
   died: 0
 --- !u!114 &11439730
@@ -1270,6 +1270,12 @@ MonoBehaviour:
   desiredMove: {x: 0, y: 0, z: 0}
   blinks: 0
   blinkSpeed: 4
+  CamKick: 0
+  Kick: 2
+  KickDecay: 1
+  KickDecayStart: 1
+  bouncePadForce: 2
+  bounced: 0
 --- !u!114 &11496502
 MonoBehaviour:
   m_ObjectHideFlags: 1

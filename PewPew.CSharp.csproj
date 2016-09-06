@@ -159,6 +159,7 @@
     <Compile Include="Assets\Scripts\Initalize.cs" />
     <Compile Include="Assets\Scripts\LightHandler.cs" />
     <Compile Include="Assets\Scripts\NetworkMan.cs" />
+    <Compile Include="Assets\Scripts\Parkour.cs" />
     <Compile Include="Assets\Scripts\ShootyShooty.cs" />
     <Compile Include="Assets\Scripts\StuffGunObject.cs" />
     <Compile Include="Assets\Scripts\UIManager.cs" />

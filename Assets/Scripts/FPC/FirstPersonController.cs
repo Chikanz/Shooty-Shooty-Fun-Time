@@ -109,6 +109,11 @@ public class FirstPersonController : MonoBehaviour
     public float KickDecay = 1;
     public float KickDecayStart = 1;
 
+    public float bouncePadForce;
+    public bool bounced = false;
+
+    //public bool toucingSticky = false;
+
     // Use this for initialization
     private void Start()
     {
@@ -132,12 +137,12 @@ public class FirstPersonController : MonoBehaviour
     {
         RotateView();
         // the jump state needs to read here to make sure it is not missed
-        if (!m_Jump && allowInput && m_CharacterController.isGrounded) //can only jump on the ground
+        if (!m_Jump && allowInput && (m_CharacterController.isGrounded)) //can only jump on the ground
         {
             m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
         }
 
-        if (!m_PreviouslyGrounded && m_CharacterController.isGrounded)
+        if (!m_PreviouslyGrounded && (m_CharacterController.isGrounded))
         {
             StartCoroutine(m_JumpBob.DoBobCycle());
             PlayLandingSound();
@@ -150,6 +155,11 @@ public class FirstPersonController : MonoBehaviour
         }
 
         m_PreviouslyGrounded = m_CharacterController.isGrounded;
+
+        //if (bouncePadMod)
+        //{
+        //    bouncePadMod = false;
+        //}
     }
 
     private void PlayLandingSound()
@@ -188,7 +198,14 @@ public class FirstPersonController : MonoBehaviour
 
             if (m_Jump)
             {
-                m_MoveDir.y = m_JumpSpeed;
+                if (bounced)
+                {
+                    m_MoveDir.y = -velocity.y * bouncePadForce;
+                    bounced = false;
+                }
+                else
+                    m_MoveDir.y = m_JumpSpeed;
+
                 PlayJumpSound();
                 m_Jump = false;
                 m_Jumping = true;
@@ -335,9 +352,6 @@ public class FirstPersonController : MonoBehaviour
         bool waswalking = m_IsWalking;
         m_IsWalking = true; //!Input.GetKey(KeyCode.LeftShift);
 
-        if (SS.reloading || NM.blink) //Zek code
-            m_IsWalking = true;
-
         // set the desired speed to be walking or running
         speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
         m_Input = new Vector2(horizontal, vertical);
@@ -374,15 +388,23 @@ public class FirstPersonController : MonoBehaviour
     {
         Rigidbody body = hit.collider.attachedRigidbody;
         //dont move the rigidbody if the character is on top of it
-        if (m_CollisionFlags == CollisionFlags.Below)
+        //if (m_CollisionFlags == CollisionFlags.Below)
+        //{
+        //    return;
+        //}
+
+        if (!bounced && hit.transform.tag == "BouncePad")
         {
-            return;
+            m_Jump = true;
+            m_Jumping = true;
+            bounced = true;
         }
 
         if (body == null || body.isKinematic)
         {
             return;
         }
-        body.AddForceAtPosition(m_CharacterController.velocity * 0.1f, hit.point, ForceMode.Impulse);
+
+        body.AddForceAtPosition(m_CharacterController.velocity, hit.point, ForceMode.Impulse);
     }
 }

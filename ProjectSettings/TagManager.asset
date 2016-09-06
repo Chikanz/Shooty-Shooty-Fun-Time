@@ -11,9 +11,8 @@ TagManager:
   - OuttaBounds
   - Stuff
   - LevelHit
-  - GodBullets
-  - JumpAcc
-  - BEVS
+  - BouncePad
+  - Sticky
   layers:
   - Default
   - TransparentFX
