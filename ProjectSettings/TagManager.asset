@@ -13,6 +13,10 @@ TagManager:
   - LevelHit
   - BouncePad
   - Sticky
+  - GodBullets
+  - JumpAcc
+  - BEVS
+  - DoubleJump
   layers:
   - Default
   - TransparentFX

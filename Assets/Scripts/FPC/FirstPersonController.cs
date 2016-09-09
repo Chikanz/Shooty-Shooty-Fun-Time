@@ -112,7 +112,12 @@ public class FirstPersonController : MonoBehaviour
     public float bouncePadForce;
     public bool bounced = false;
 
-    //public bool toucingSticky = false;
+    private bool doubleJump;
+    private bool touchingDoubleJump;
+    private bool canDoubleJump = true;
+    public float dJumpBonus;
+    public string lastTouched = "";
+    public string prevLastTouched;
 
     // Use this for initialization
     private void Start()
@@ -137,11 +142,18 @@ public class FirstPersonController : MonoBehaviour
     {
         RotateView();
         // the jump state needs to read here to make sure it is not missed
-        if (!m_Jump && allowInput && (m_CharacterController.isGrounded)) //can only jump on the ground
+        if (!m_Jump && allowInput && (m_CharacterController.isGrounded))
         {
-            m_Jump = CrossPlatformInputManager.GetButtonDown("Jump");
+            m_Jump = Input.GetButtonDown("Jump");
         }
 
+        if (touchingDoubleJump && canDoubleJump && Input.GetButtonDown("Jump"))
+        {
+            doubleJump = true;
+            canDoubleJump = false;
+        }
+
+        //Gorunded stuff
         if (!m_PreviouslyGrounded && (m_CharacterController.isGrounded))
         {
             StartCoroutine(m_JumpBob.DoBobCycle());
@@ -149,17 +161,19 @@ public class FirstPersonController : MonoBehaviour
             m_MoveDir.y = 0f;
             m_Jumping = false;
         }
+
+        //Somethig to do with falling?
         if (!m_CharacterController.isGrounded && !m_Jumping && m_PreviouslyGrounded)
         {
             m_MoveDir.y = 0f;
         }
 
-        m_PreviouslyGrounded = m_CharacterController.isGrounded;
+        if (lastTouched != prevLastTouched)
+            canDoubleJump = true;
 
-        //if (bouncePadMod)
-        //{
-        //    bouncePadMod = false;
-        //}
+        prevLastTouched = lastTouched;
+
+        m_PreviouslyGrounded = m_CharacterController.isGrounded;
     }
 
     private void PlayLandingSound()
@@ -210,6 +224,15 @@ public class FirstPersonController : MonoBehaviour
                 m_Jump = false;
                 m_Jumping = true;
             }
+        }
+        else if (doubleJump)
+        {
+            m_MoveDir.y = m_JumpSpeed * dJumpBonus;
+            doubleJump = false;
+
+            PlayJumpSound();
+            m_Jump = false;
+            m_Jumping = true;
         }
         else
         {
@@ -387,17 +410,22 @@ public class FirstPersonController : MonoBehaviour
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         Rigidbody body = hit.collider.attachedRigidbody;
-        //dont move the rigidbody if the character is on top of it
-        //if (m_CollisionFlags == CollisionFlags.Below)
-        //{
-        //    return;
-        //}
+        lastTouched = hit.transform.name;
 
         if (!bounced && hit.transform.tag == "BouncePad")
         {
             m_Jump = true;
             m_Jumping = true;
             bounced = true;
+        }
+
+        if (hit.transform.tag == "DoubleJump")
+        {
+            touchingDoubleJump = true;
+        }
+        else
+        {
+            touchingDoubleJump = false;
         }
 
         if (body == null || body.isKinematic)
