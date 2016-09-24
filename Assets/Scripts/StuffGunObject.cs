@@ -35,7 +35,7 @@ public class StuffGunObject : MonoBehaviour
         if (NM == null)
             NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
 
-        if (NM.FootBall)
+        if (NM.GMFootBall)
         {
             if (c.gameObject.name == "Shooty Ball")
             {

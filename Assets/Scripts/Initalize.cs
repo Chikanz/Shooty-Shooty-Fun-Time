@@ -250,7 +250,8 @@ public class Initalize : Photon.MonoBehaviour
         if (other.tag == "OuttaBounds" && !died && photonView.isMine)
         {
             Die();
-            NM.pv.RPC("SendChatMessage", PhotonTargets.All, PhotonNetwork.player.name + " fell off the map like an idiot.");
+            //if(NM.gmSelect != 1)
+            //    NM.pv.RPC("SendChatMessage", PhotonTargets.All, PhotonNetwork.player.name + " fell off the map like an idiot.");
         }
     }
 }

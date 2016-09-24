@@ -15,7 +15,12 @@ public class NetworkMan : Photon.MonoBehaviour
     [SerializeField]
     private Transform[] SpawnPoints;
 
-    public Transform spawn;
+    private Transform spawn;
+    private Transform OGSpawn;
+
+    public Camera lobbyCam;
+
+    public GameObject RaceFallBounds;
 
     public GameObject player;
 
@@ -96,8 +101,8 @@ public class NetworkMan : Photon.MonoBehaviour
     //FX
     private const int FxCount = 7;
 
-    private const int GmCount = 1;
-    private int gmSelect = -1;
+    private const int GmCount = 2;
+    public int gmSelect = -1;
 
     public bool lowgrav;
     public bool JumpAcc;
@@ -108,7 +113,9 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool slowMo;
 
     //Gamemode
-    public bool FootBall = true;
+    public bool GMFootBall;
+
+    public bool GMRace;
 
     // Use this for initialization
     private void Start()
@@ -238,30 +245,44 @@ public class NetworkMan : Photon.MonoBehaviour
 
     private void OnJoinedRoom()
     {
-        SetSpawn();
+        DecideSpawn();
         Spawn();
         pv.RPC("SendChatMessage", PhotonTargets.All, PhotonNetwork.player.name + " has joined");
         chat.enabled = false;
     }
 
-    private void SetSpawn()
+    public void SetSpawn(Transform pos)
+    {
+        spawn = pos;
+    }
+
+    public void ResetSpawn()
+    {
+        spawn = OGSpawn;
+    }
+
+    private void DecideSpawn()
     {
         if (PhotonNetwork.playerList.Length == 1)
         {//First
-            spawn = SpawnPoints[0];
+            OGSpawn = SpawnPoints[0];
+            spawn = OGSpawn;
             playerNumber = 0;
         }
         else
         {//Second
-            spawn = SpawnPoints[1];
+            OGSpawn = SpawnPoints[1];
+            spawn = OGSpawn;
             playerNumber = 1;
         }
     }
 
     public void Spawn()
     {
+        lobbyCam.gameObject.SetActive(false);
         player = PhotonNetwork.Instantiate("Player", spawn.position, spawn.rotation, 0);
         SS = player.GetComponentInChildren<ShootyShooty>();
+        FPC = player.GetComponentInChildren<FirstPersonController>();
         init = player.GetComponentInChildren<Initalize>();
         normalInnac = SS.maxInnac;
         normalInnacDecay = SS.spamInnac;
@@ -272,9 +293,10 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public void MoveToSpawn()
     {
-        player.GetComponent<Initalize>().FPcam.rotation = spawn.rotation;
+        //player.GetComponent<Initalize>().FPcam.rotation = spawn.rotation;
         player.transform.position = spawn.position;
         player.transform.rotation = spawn.rotation;
+        player.GetComponent<FirstPersonController>().ResetCamDirection();
     }
 
     //Modifier Switches
@@ -467,11 +489,11 @@ public class NetworkMan : Photon.MonoBehaviour
     [PunRPC]
     public void Football(bool b)
     {
-        FootBall = b;
+        GMFootBall = b;
         innerStuff.gameObject.SetActive(!b);
         shootyBallStuff.gameObject.SetActive(b);
         MDeath = b;
-        player.GetComponentInChildren<FirstPersonController>().blinkSpeed = b ? 2 : 4; ;
+        player.GetComponentInChildren<FirstPersonController>().blinkSpeed = b ? 2 : 4; //Half blink speed when true
 
         if (!shotcaller) return; //Shot Callers only
 
@@ -481,20 +503,32 @@ public class NetworkMan : Photon.MonoBehaviour
             PhotonNetwork.Destroy(ShootyBall.gameObject);
     }
 
+    [PunRPC]
+    public void Race(bool b)
+    {
+        GMRace = b;
+        if (b)
+        {
+            spawn = PhotonNetwork.isMasterClient ? SpawnPoints[5] : SpawnPoints[6];
+            MoveToSpawn();
+        }
+        else
+        {
+            ResetSpawn();
+            MoveToSpawn();
+        }
+        FPC.blinkDistance = b ? 0.7f : 2;
+        //FPC.blinkDistance = 1.2f;
+        MDeath = b;
+        RaceFallBounds.SetActive(b);
+    }
+
     //Other RPCs
     [PunRPC]
     public void FinishedCallingShots(string f)
     {
         FXString = f;
         FXList.text = FXString;
-    }
-
-    private string ColToHex(Color col)
-    {
-        int r = (int)Mathf.Floor(col.r * 255);
-        int g = (int)Mathf.Floor(col.g * 255);
-        int b = (int)Mathf.Floor(col.b * 255);
-        return "#" + r.ToString("X") + g.ToString("X") + b.ToString("X");
     }
 
     public void connectToRoom()
@@ -508,39 +542,6 @@ public class NetworkMan : Photon.MonoBehaviour
     private void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)
     {
         pv.RPC("SendChatMessage", PhotonTargets.All, otherPlayer.name + " has quit");
-    }
-
-    private string InsertRandomLetter(string s)
-    {
-        int index = Random.Range(0, s.Length);
-        int charIndex = Random.Range(0, alphabet.Length);
-
-        return s.Insert(index, alphabet[charIndex].ToString());
-    }
-
-    private string RemoveRandomLetter(string s)
-    {
-        int index = Random.Range(0, s.Length);
-
-        return s.Remove(index);
-    }
-
-    private char GetTypo(char c)
-    {
-        int index = keyboard.IndexOf(c);
-        int mod = -1;
-        if (!forwards.Contains(index) && !backwards.Contains(index)) //Normal case
-        {
-            float modr = Random.value;
-            if (modr > 0.5)
-                mod = 1;
-        }
-        else if (forwards.Contains(index)) //Has to go forward
-            mod = 1;
-        else if (backwards.Contains(index)) //Has to go backwards
-            mod = -1;
-
-        return keyboard[index + mod];
     }
 
     private void ChooseFX()
@@ -562,13 +563,13 @@ public class NetworkMan : Photon.MonoBehaviour
 
         if (Random.value > 0.0f)
         {
-            gmSelect = Random.Range(0, GmCount);
+            gmSelect = Random.Range(1, GmCount);
             SetGameMode(gmSelect, true);
             FXString += GetGmString(gmSelect) + "\n";
         }
 
         List<int> pastIndexes = new List<int>();
-        if (gmSelect == 0) //Exclusions
+        if (gmSelect == 0 || gmSelect == 1) //Exclude godbullets
             pastIndexes.Add(2);
 
         while (pastIndexes.Count <= numFX)
@@ -705,6 +706,10 @@ public class NetworkMan : Photon.MonoBehaviour
             case 0:
                 pv.RPC("Football", PhotonTargets.All, b);
                 break;
+
+            case 1:
+                pv.RPC("Race", PhotonTargets.All, b);
+                break;
         }
     }
 
@@ -715,6 +720,10 @@ public class NetworkMan : Photon.MonoBehaviour
             case 0:
                 return "Shooty Ball";
                 break;
+
+            case 1:
+                return "Race";
+                break;
         }
         return "Uh oh";
     }
@@ -724,5 +733,60 @@ public class NetworkMan : Photon.MonoBehaviour
         playerLocked = l;
         player.GetComponent<FirstPersonController>().allowInput = !l;
         player.GetComponentInChildren<ShootyShooty>().shootingEnabled = !l;
+    }
+
+    public void GMRoundEnd(bool p1Won)
+    {
+        if (p1Won)
+            pv.RPC("P1Up", PhotonTargets.All, null);
+        else
+            pv.RPC("P2Up", PhotonTargets.All, null);
+
+        shotcaller = true;
+        roundEnded = true;
+        endRoundTimer = 5;
+        MDeath = false;
+    }
+
+    //Depricated functions
+    private string InsertRandomLetter(string s)
+    {
+        int index = Random.Range(0, s.Length);
+        int charIndex = Random.Range(0, alphabet.Length);
+
+        return s.Insert(index, alphabet[charIndex].ToString());
+    }
+
+    private string RemoveRandomLetter(string s)
+    {
+        int index = Random.Range(0, s.Length);
+
+        return s.Remove(index);
+    }
+
+    private char GetTypo(char c)
+    {
+        int index = keyboard.IndexOf(c);
+        int mod = -1;
+        if (!forwards.Contains(index) && !backwards.Contains(index)) //Normal case
+        {
+            float modr = Random.value;
+            if (modr > 0.5)
+                mod = 1;
+        }
+        else if (forwards.Contains(index)) //Has to go forward
+            mod = 1;
+        else if (backwards.Contains(index)) //Has to go backwards
+            mod = -1;
+
+        return keyboard[index + mod];
+    }
+
+    private string ColToHex(Color col)
+    {
+        int r = (int)Mathf.Floor(col.r * 255);
+        int g = (int)Mathf.Floor(col.g * 255);
+        int b = (int)Mathf.Floor(col.b * 255);
+        return "#" + r.ToString("X") + g.ToString("X") + b.ToString("X");
     }
 }

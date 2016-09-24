@@ -22,19 +22,12 @@ public class Football : MonoBehaviour
         {
             if (other.transform.name == "Red Goal")
             {
-                NM.pv.RPC("P2Up", PhotonTargets.All, null);
-                NM.shotcaller = true;
-                NM.roundEnded = true;
-                NM.endRoundTimer = 5;
-                NM.MDeath = false;
+                NM.GMRoundEnd(false);
             }
 
             if (other.transform.name == "Blue Goal")
             {
-                NM.pv.RPC("P1Up", PhotonTargets.All, null);
-                NM.shotcaller = true;
-                NM.endRoundTimer = 5;
-                NM.MDeath = false;
+                NM.GMRoundEnd(true);
             }
         }
     }

@@ -4,7 +4,6 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - LowGrav
   - Enemy
   - Level
   - Casing
@@ -12,11 +11,10 @@ TagManager:
   - Stuff
   - LevelHit
   - BouncePad
-  - Sticky
   - GodBullets
-  - JumpAcc
-  - BEVS
   - DoubleJump
+  - CheckPoint
+  - FinishLine
   layers:
   - Default
   - TransparentFX

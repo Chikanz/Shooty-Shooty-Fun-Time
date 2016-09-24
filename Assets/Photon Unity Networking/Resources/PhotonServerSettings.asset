@@ -55,4 +55,5 @@ MonoBehaviour:
   - SlowMo
   - SlowMoSet
   - Football
+  - Race
   DisableAutoOpenWizard: 1

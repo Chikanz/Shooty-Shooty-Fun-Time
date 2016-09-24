@@ -103,6 +103,7 @@ public class FirstPersonController : MonoBehaviour
     private float blinkTimer;
 
     public int blinkSpeed = 4;
+    public float blinkDistance = 2;
 
     public float CamKick = 0f;
     public float Kick = 2f;
@@ -118,6 +119,8 @@ public class FirstPersonController : MonoBehaviour
     public float dJumpBonus;
     public string lastTouched = "";
     public string prevLastTouched;
+
+    public bool Mlook = true;
 
     // Use this for initialization
     private void Start()
@@ -270,7 +273,7 @@ public class FirstPersonController : MonoBehaviour
             if (NM.blink && blinks > 0)// && !(blinkLerp <= 1))
             {
                 blinkFrom = transform.position;
-                blinkVel = transform.position += new Vector3(m_MoveDir.x, 0, m_MoveDir.z) * 2;
+                blinkVel = transform.position += new Vector3(m_MoveDir.x, 0, m_MoveDir.z) * blinkDistance;
                 blinkLerp = 0;
                 blinks -= 1;
                 blinkTimer = 0;
@@ -396,7 +399,9 @@ public class FirstPersonController : MonoBehaviour
 
     private void RotateView()
     {
-        m_MouseLook.LookRotation(transform, m_Camera.transform);
+        if (Mlook)
+            m_MouseLook.LookRotation(transform, m_Camera.transform);
+
         if (CamKick >= 0)
         {
             m_Camera.transform.rotation *= Quaternion.Euler(-CamKick, 0, 0);
@@ -405,6 +410,19 @@ public class FirstPersonController : MonoBehaviour
         }
         else
             KickDecay = KickDecayStart;
+    }
+
+    public void ResetCamDirection()
+    {
+        m_MouseLook.Init(transform, m_Camera.transform);
+    }
+
+    public void OnTriggerEnter(Collider c)
+    {
+        if (c.tag == "CheckPoint")
+        {
+            NM.SetSpawn(c.transform);
+        }
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -419,14 +437,12 @@ public class FirstPersonController : MonoBehaviour
             bounced = true;
         }
 
-        if (hit.transform.tag == "DoubleJump")
+        if (hit.transform.tag == "FinishLine" && !NM.roundEnded)
         {
-            touchingDoubleJump = true;
+            NM.GMRoundEnd(PhotonNetwork.isMasterClient);
         }
-        else
-        {
-            touchingDoubleJump = false;
-        }
+
+        touchingDoubleJump = (hit.transform.tag == "DoubleJump");
 
         if (body == null || body.isKinematic)
         {
