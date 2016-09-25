@@ -419,7 +419,7 @@ public class FirstPersonController : MonoBehaviour
 
     public void OnTriggerEnter(Collider c)
     {
-        if (c.tag == "CheckPoint")
+        if (c.tag == "CheckPoint" && GetComponent<PhotonView>().isMine)
         {
             NM.SetSpawn(c.transform);
         }
@@ -429,6 +429,11 @@ public class FirstPersonController : MonoBehaviour
     {
         Rigidbody body = hit.collider.attachedRigidbody;
         lastTouched = hit.transform.name;
+
+        if (hit.gameObject.layer == 11)
+        {
+            hit.transform.GetComponent<PhotonView>().RequestOwnership();
+        }
 
         if (!bounced && hit.transform.tag == "BouncePad")
         {

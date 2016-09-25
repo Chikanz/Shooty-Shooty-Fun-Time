@@ -37,7 +37,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public GameObject innerStuff;
     public GameObject shootyBallStuff;
 
-    private GameObject ShootyBall;
+    public GameObject ShootyBall;
 
     public List<GameObject> everything;
     //private List<string> DestroyedObjs = new List<string>();
@@ -98,8 +98,9 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public bool MDeath = true; //Move death - moves to spawn, doesn't restart
 
-    public bool slowMoP1;
-    public bool slowMoP2;
+    private bool slowMoP1;
+    private bool slowMoP2;
+    private readonly float slowMoMulti = 0.4f;
 
     //FX
     private readonly string[] FXText =
@@ -227,7 +228,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
             if (gmSelect == 0 && shotcaller)
             {
-                ShootyBall.GetComponent<Rigidbody>().useGravity = true;
+                //ShootyBall.GetComponent<Rigidbody>().useGravity = true;
             }
 
             shotcaller = false;
@@ -494,7 +495,36 @@ public class NetworkMan : Photon.MonoBehaviour
 
     //Detailed modifier RPCs
     [PunRPC]
-    public void SlowMoSet(float scale)
+    public void P1SlowMoSet(bool on)
+    {
+        slowMoP1 = on;
+
+        if (slowMoP1 || slowMoP2)
+        {
+            SetTimeScale(slowMoMulti);
+        }
+        else if (!slowMoP1 && !slowMoP2)
+        {
+            SetTimeScale(1);
+        }
+    }
+
+    [PunRPC]
+    public void P2SlowMoSet(bool on)
+    {
+        slowMoP2 = on;
+
+        if (slowMoP1 || slowMoP2)
+        {
+            SetTimeScale(slowMoMulti);
+        }
+        else if (!slowMoP1 && !slowMoP2)
+        {
+            SetTimeScale(1);
+        }
+    }
+
+    private void SetTimeScale(float scale)
     {
         Time.timeScale = scale;
         Time.fixedDeltaTime = 0.02F * Time.timeScale;
@@ -593,7 +623,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
         if (Random.value > 0.0f)
         {
-            gmSelect = Random.Range(1, GmCount);
+            gmSelect = Random.Range(0, 1);// GmCount);
             SetGameMode(gmSelect, true);
             FXString += GetGmString(gmSelect) + "\n";
         }

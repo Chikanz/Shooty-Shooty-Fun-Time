@@ -33,9 +33,12 @@ public class BulletManager : MonoBehaviour
         rendererList.Add(c.GetComponent<MeshRenderer>());
         particleList.Add(c.GetComponent<ParticleSystem>());
 
-        var othercol = other.GetComponent<Renderer>().material.color * 0.5f;
-        c.GetComponent<Renderer>().material.color = othercol;
-        c.GetComponent<ParticleSystemRenderer>().material.color = othercol;
+        if (other.GetComponent<Renderer>())
+        {
+            var othercol = other.GetComponent<Renderer>().material.color * 0.5f;
+            c.GetComponent<Renderer>().material.color = othercol;
+            c.GetComponent<ParticleSystemRenderer>().material.color = othercol;
+        }
 
         if (rendererList.Count > maxImpacts) //Cap
         {

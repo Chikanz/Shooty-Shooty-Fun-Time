@@ -1162,8 +1162,8 @@ MonoBehaviour:
   slowMoJuice: 0
   slowMoMax: 3
   slowMoInUse: 0
-  slowMoMulti: 0.4
   ShootyBallForce: 500
+  StuffGunForce: 1000
 --- !u!114 &11468368
 MonoBehaviour:
   m_ObjectHideFlags: 1

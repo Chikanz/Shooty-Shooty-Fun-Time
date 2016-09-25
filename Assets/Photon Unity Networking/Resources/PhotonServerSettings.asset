@@ -56,4 +56,8 @@ MonoBehaviour:
   - SlowMoSet
   - Football
   - Race
+  - Shotty
+  - SlowMoset
+  - P1SlowMoSet
+  - P2SlowMoSet
   DisableAutoOpenWizard: 1

@@ -96,7 +96,6 @@ public class ShootyShooty : NetworkBehaviour
     public float slowMoJuice;
     public float slowMoMax = 3;
     public bool slowMoInUse = false;
-    public float slowMoMulti = 0.4f;
 
     public int ShootyBallForce = 500;
     public int StuffGunForce = 1000;
@@ -197,7 +196,8 @@ public class ShootyShooty : NetworkBehaviour
         {
             slowMoJuice = 0;
             slowMoInUse = false;
-            NM.pv.RPC("SlowMoSet", PhotonTargets.All, 1.0f);
+            NM.pv.RPC(PhotonNetwork.isMasterClient ? "P1SlowMoSet" : "P2SlowMoSet",
+                    PhotonTargets.All, false);
         }
 
         if (NM.slowMo && Input.GetKeyDown(KeyCode.LeftShift) && slowMoJuice > 0)
@@ -205,12 +205,14 @@ public class ShootyShooty : NetworkBehaviour
             if (!slowMoInUse)
             {
                 slowMoInUse = true;
-                NM.pv.RPC("SlowMoSet", PhotonTargets.All, slowMoMulti);
+                NM.pv.RPC(PhotonNetwork.isMasterClient ? "P1SlowMoSet" : "P2SlowMoSet",
+                    PhotonTargets.All, true);
             }
             else
             {
                 slowMoInUse = false;
-                NM.pv.RPC("SlowMoSet", PhotonTargets.All, 1.0f);
+                NM.pv.RPC(PhotonNetwork.isMasterClient ? "P1SlowMoSet" : "P2SlowMoSet",
+                    PhotonTargets.All, false);
             }
         }
 
@@ -259,6 +261,7 @@ public class ShootyShooty : NetworkBehaviour
                     //ShootyBall
                     if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
                     {
+                        hit.transform.GetComponent<PhotonView>().RequestOwnership();
                         hit.transform.GetComponent<Rigidbody>()
                             .AddForceAtPosition(transform.forward * ShootyBallForce, hit.point);
                     }
