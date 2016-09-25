@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
@@ -91,6 +92,8 @@ public class NetworkMan : Photon.MonoBehaviour
     public int SBMaxForce = 2000;
     public int SBNormForce = 500;
 
+    public int MaxStuffGunForce = 10000;
+
     private readonly char[] trimings = { '+', ' ' };
 
     public bool MDeath = true; //Move death - moves to spawn, doesn't restart
@@ -99,9 +102,21 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool slowMoP2;
 
     //FX
-    private const int FxCount = 7;
+    private readonly string[] FXText =
+        {
+            "The Moon",
+            "Jump Gun",
+            "God Bullets",
+            "Mum's Spaghetti",
+            "Blink",
+            "Stuff Gun",
+            "Slow Mo",
+            "Shotgun"
+        };
 
+    //FX Bools
     private const int GmCount = 2;
+
     public int gmSelect = -1;
 
     public bool lowgrav;
@@ -111,6 +126,8 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool blink;
     public bool stuffGun;
     public bool slowMo;
+    public bool oneShot;
+    public bool shotGun;
 
     //Gamemode
     public bool GMFootBall;
@@ -437,10 +454,13 @@ public class NetworkMan : Photon.MonoBehaviour
     [PunRPC]
     public void MumsSpaghetti(bool b)
     {
+        oneShot = b;
         SS.maxClip = b ? 1 : 10;
         SS.inClip = b ? 1 : 10;
         SS.bulletDamage = b ? 4 : 1;
         SS.ShootyBallForce = b ? SBMaxForce : SBNormForce;
+        if (stuffGun)
+            SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
     }
 
     [PunRPC]
@@ -462,6 +482,14 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         slowMo = b;
         player.GetComponentInChildren<ShootyShooty>().slowMoJuice = 0;
+    }
+
+    [PunRPC]
+    public void Shotty(bool b)
+    {
+        shotGun = b;
+        SS.maxClip = b ? 2 : 10;
+        SS.maxClip = SS.inClip;
     }
 
     //Detailed modifier RPCs
@@ -494,6 +522,7 @@ public class NetworkMan : Photon.MonoBehaviour
         shootyBallStuff.gameObject.SetActive(b);
         MDeath = b;
         player.GetComponentInChildren<FirstPersonController>().blinkSpeed = b ? 2 : 4; //Half blink speed when true
+        //SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
 
         if (!shotcaller) return; //Shot Callers only
 
@@ -509,7 +538,7 @@ public class NetworkMan : Photon.MonoBehaviour
         GMRace = b;
         if (b)
         {
-            spawn = PhotonNetwork.isMasterClient ? SpawnPoints[5] : SpawnPoints[6];
+            RaceSpawnReset();
             MoveToSpawn();
         }
         else
@@ -519,6 +548,7 @@ public class NetworkMan : Photon.MonoBehaviour
         }
         FPC.blinkDistance = b ? 0.7f : 2;
         //FPC.blinkDistance = 1.2f;
+        SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
         MDeath = b;
         RaceFallBounds.SetActive(b);
     }
@@ -569,18 +599,23 @@ public class NetworkMan : Photon.MonoBehaviour
         }
 
         List<int> pastIndexes = new List<int>();
-        if (gmSelect == 0 || gmSelect == 1) //Exclude godbullets
-            pastIndexes.Add(2);
+        if (gmSelect == 0)
+            pastIndexes.Add(2); //Exclude godbullets
 
+        if (gmSelect == 1)
+        {
+            pastIndexes.Add(2); //Exclude godbullets
+            pastIndexes.Add(3); //Exclude OneShot
+        }
         while (pastIndexes.Count <= numFX)
         {
-            int FXindex = Random.Range(0, FxCount);
+            int FXindex = Random.Range(0, FXText.Count());
             if (pastIndexes.Contains(FXindex))
                 continue;
 
             pastIndexes.Add(FXindex);
             flipFX(FXindex, true);
-            FXString += GetFXText(FXindex) + " + ";
+            FXString += FXText[FXindex] + " + ";
         }
         pastIndexes.Clear();
         FXString = FXString.TrimEnd(trimings);
@@ -618,6 +653,10 @@ public class NetworkMan : Photon.MonoBehaviour
                 pv.RPC("SlowMo", PhotonTargets.All, flip);
                 break;
 
+            case 7:
+                pv.RPC("Shotty", PhotonTargets.All, flip);
+                break;
+
             default:
                 Debug.Log("FXFlip Out of bounds");
                 break;
@@ -646,56 +685,9 @@ public class NetworkMan : Photon.MonoBehaviour
         if (godBullets)
             pv.RPC("RestoreLevel", PhotonTargets.All, null);
 
-        for (int i = 0; i < FxCount; i++)
+        for (int i = 0; i < FXText.Count(); i++)
         {
             flipFX(i, false);
-        }
-    }
-
-    private string GetFXText(int index)
-    {
-        switch (index)
-        {
-            case 0:
-                return "The Moon";
-                break;
-
-            case 1:
-                return "Jump gun"; //Weird gun?
-                break;
-
-            case 2:
-                return "God Bullets";
-                break;
-
-            case 3:
-                return "Mum's Spaghetti";
-                break;
-
-            case 4:
-                return "Blink";
-                break;
-
-            case 5:
-                return "Stuff Gun";
-                break;
-
-            case 6:
-                return "Slow Mo";
-                break;
-
-            default:
-                Debug.Log("FXString Out of bounds");
-                return "";
-                break;
-
-                //case 5:
-                //    return "No Scope";
-                //    break;
-
-                //case 2:
-                //    return "Alcohol";
-                //    break;
         }
     }
 
@@ -746,6 +738,11 @@ public class NetworkMan : Photon.MonoBehaviour
         roundEnded = true;
         endRoundTimer = 5;
         MDeath = false;
+    }
+
+    public void RaceSpawnReset()
+    {
+        spawn = PhotonNetwork.isMasterClient ? SpawnPoints[5] : SpawnPoints[6];
     }
 
     //Depricated functions

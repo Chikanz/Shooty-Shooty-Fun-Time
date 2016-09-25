@@ -8,7 +8,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 479850}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: transform1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -23,7 +23,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 496642}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: transform2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38,7 +38,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 405806}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: pSphere1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -53,7 +53,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 469390}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: pCylinder1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -72,7 +72,7 @@ GameObject:
   - 135: {fileID: 13590182}
   - 114: {fileID: 11469738}
   - 114: {fileID: 11401762}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: pokeball
   m_TagString: Stuff
   m_Icon: {fileID: 0}
@@ -89,7 +89,7 @@ GameObject:
   - 4: {fileID: 426488}
   - 33: {fileID: 3363522}
   - 23: {fileID: 2341076}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: pCylinder3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -104,7 +104,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 443100}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: transform4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -119,7 +119,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 408410}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: transform3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -134,7 +134,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 499376}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: pCylinder2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -149,7 +149,7 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 426480}
-  m_Layer: 0
+  m_Layer: 13
   m_Name: pSphere2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -304,19 +304,22 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
   m_Materials:
   - {fileID: 2100000, guid: e5466a191b0a8b546a8249c413e31332, type: 2}
   - {fileID: 2100000, guid: 958fb4e376318d345a5b5d862720ffdb, type: 2}
   - {fileID: 2100000, guid: 6afd6eef53871f14581fa9a652e21f04, type: 2}
   m_SubsetIndices: 
   m_StaticBatchRoot: {fileID: 0}
-  m_UseLightProbes: 1
-  m_ReflectionProbeUsage: 1
   m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
+  m_SelectedWireframeHidden: 0
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
@@ -356,6 +359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf97a1017e9c4ed4788ceef6ec44feee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stuffGunMulti: 2
   TTL: 1
 --- !u!114 &11469738
 MonoBehaviour:

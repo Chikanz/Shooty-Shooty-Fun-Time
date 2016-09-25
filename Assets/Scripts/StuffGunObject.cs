@@ -6,7 +6,7 @@ public class StuffGunObject : MonoBehaviour
     private NetworkMan NM;
     private int destroyed = 0;
     public int stuffGunMulti = 2;
-    public float TTL = 1; //Time till live
+    public float TTL = 0.5f; //Time till live
 
     private void Start()
     {
@@ -57,12 +57,14 @@ public class StuffGunObject : MonoBehaviour
         {
             var i = NM.everything.IndexOf(c.gameObject);
             if (i != -1)
+            {
                 NM.pv.RPC("KillLevel", PhotonTargets.All, i);
+                destroyed += 1;
+                if (destroyed >= 3)
+                    Destroy(gameObject);
+            }
             else
                 Debug.Log("Couldn't find that item!" + c.gameObject.ToString());
-            destroyed += 1;
-            if (destroyed >= 3)
-                Destroy(gameObject);
         }
     }
 }

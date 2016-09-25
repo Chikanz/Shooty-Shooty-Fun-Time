@@ -5552,6 +5552,7 @@ MonoBehaviour:
   deagleInnac: 0.2
   SBMaxForce: 2000
   SBNormForce: 500
+  MaxStuffGunForce: 5000
   MDeath: 0
   slowMoP1: 0
   slowMoP2: 0
@@ -5563,6 +5564,7 @@ MonoBehaviour:
   blink: 0
   stuffGun: 0
   slowMo: 0
+  oneShot: 0
   GMFootBall: 0
   GMRace: 0
 --- !u!4 &214835062
@@ -23490,7 +23492,7 @@ GameObject:
   - 33: {fileID: 1155362770}
   - 65: {fileID: 1155362769}
   - 23: {fileID: 1155362768}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Divider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -39121,7 +39123,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 1923728871}
   - 65: {fileID: 1923728872}
-  m_Layer: 10
+  m_Layer: 0
   m_Name: Fall Bounds
   m_TagString: OuttaBounds
   m_Icon: {fileID: 0}

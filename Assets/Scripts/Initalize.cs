@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class Initalize : Photon.MonoBehaviour
@@ -173,6 +174,9 @@ public class Initalize : Photon.MonoBehaviour
 
         if (health <= 0 && photonView.isMine)
         {
+            if (NM.oneShot && NM.GMRace)
+                NM.RaceSpawnReset();
+
             Die(forcepos);
         }
     }

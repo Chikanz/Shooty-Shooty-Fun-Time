@@ -99,8 +99,9 @@ public class ShootyShooty : NetworkBehaviour
     public float slowMoMulti = 0.4f;
 
     public int ShootyBallForce = 500;
+    public int StuffGunForce = 1000;
 
-    private string[] stuffs =
+    private readonly string[] stuffs =
     {
         "arrow",
         "BEVS",
@@ -225,74 +226,84 @@ public class ShootyShooty : NetworkBehaviour
         {
             shooting = false;
 
-            RaycastHit hit;
+            var bulletCount = 1;
+            if (NM.shotGun)
+                bulletCount = 4;
 
-            var spray = transform.forward;
-
-            spray.x += Random.Range(-inaccuracy, inaccuracy);
-            spray.y += Random.Range(-inaccuracy, inaccuracy);
-            spray.z += Random.Range(-inaccuracy, inaccuracy);
-
-            if (Physics.Raycast(transform.position, spray, out hit, 300f))
+            for (int i = 0; i < bulletCount; i++)
             {
-                //Bullet Instance
-                var bullet = Instantiate(
-                    Bullet, Gunlight.transform.position,
-                    Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
+                RaycastHit hit;
 
-                //Link Bullet and impact
-                if (hit.transform.tag != "Player" && hit.transform.gameObject.layer != 12 && hit.transform.gameObject.layer != 11)
-                {
-                    var BS = bullet.GetComponent<bulletScript>();
-                    BS.id = BM.NewHit(hit, hit.transform.gameObject);
-                    BS.hitPos = hit.point;
-                }
+                var spray = transform.forward;
 
-                //ShootyBall
-                if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
-                {
-                    hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * ShootyBallForce, hit.point);
-                }
+                spray.x += Random.Range(-inaccuracy, inaccuracy);
+                spray.y += Random.Range(-inaccuracy, inaccuracy);
+                spray.z += Random.Range(-inaccuracy, inaccuracy);
 
-                // Gets a vector that points from the player's position to the target's.
-                //(from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
-                var heading = hit.point - Gunlight.transform.position;
-                var distance = heading.magnitude;
-                var direction = heading / distance; // This is now the normalized direction.
+                if (Physics.Raycast(transform.position, spray, out hit, 300f))
+                {
+                    //Bullet Instance
+                    var bullet = Instantiate(
+                        Bullet, Gunlight.transform.position,
+                        Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
 
-                bullet.GetComponent<Rigidbody>().AddForce(direction * bulletSpeed);
+                    //Link Bullet and impact
+                    if (hit.transform.tag != "Player" && hit.transform.gameObject.layer != 12 &&
+                        hit.transform.gameObject.layer != 11)
+                    {
+                        var BS = bullet.GetComponent<bulletScript>();
+                        BS.id = BM.NewHit(hit, hit.transform.gameObject);
+                        BS.hitPos = hit.point;
+                    }
 
-                //Get shot
-                if (hit.transform.tag == "Player" && hit.collider.isTrigger && !hit.transform.GetComponent<PhotonView>().isMine)
-                {
-                    hit.transform.GetComponent<PhotonView>()
-                        .RPC("GotShot", PhotonTargets.All, hit.collider.name == "Head" ? bulletDamage * 2 : bulletDamage, hit.transform.position);
+                    //ShootyBall
+                    if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
+                    {
+                        hit.transform.GetComponent<Rigidbody>()
+                            .AddForceAtPosition(transform.forward * ShootyBallForce, hit.point);
+                    }
 
-                    Hitmarker(hit.transform.name == "Head");
-                    BloodParticles(hit);
-                }
-                else if (hit.transform.tag == "Enemy")
-                {
-                    hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 500, hit.point);
-                    BloodParticles(hit);
-                }
-                else if (hit.transform.tag == "casing")
-                {
-                    hit.transform.GetComponent<Rigidbody>().AddForce(200 * transform.forward);
-                }
-                else if (NM.godBullets)
-                {
-                    var i = NM.everything.IndexOf(hit.transform.gameObject);
-                    if (i != -1)
-                        NM.pv.RPC("KillLevel", PhotonTargets.All, i);
-                    else
-                        Debug.Log("Couldn't find that item!" + hit.transform.gameObject.ToString());
+                    // Gets a vector that points from the player's position to the target's.
+                    //(from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
+                    var heading = hit.point - Gunlight.transform.position;
+                    var distance = heading.magnitude;
+                    var direction = heading / distance; // This is now the normalized direction.
+
+                    bullet.GetComponent<Rigidbody>().AddForce(direction * bulletSpeed);
+
+                    //Get shot
+                    if (hit.transform.tag == "Player" && hit.collider.isTrigger &&
+                        !hit.transform.GetComponent<PhotonView>().isMine)
+                    {
+                        hit.transform.GetComponent<PhotonView>()
+                            .RPC("GotShot", PhotonTargets.All,
+                                hit.collider.name == "Head" ? bulletDamage * 2 : bulletDamage, hit.transform.position);
+
+                        Hitmarker(hit.transform.name == "Head");
+                        BloodParticles(hit);
+                    }
+                    else if (hit.transform.tag == "Enemy")
+                    {
+                        hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 500, hit.point);
+                        BloodParticles(hit);
+                    }
+                    else if (hit.transform.tag == "Casing")
+                    {
+                        hit.transform.GetComponent<Rigidbody>().AddForce(200 * transform.forward);
+                    }
+                    else if (NM.godBullets)
+                    {
+                        var index = NM.everything.IndexOf(hit.transform.gameObject);
+                        if (index != -1)
+                            NM.pv.RPC("KillLevel", PhotonTargets.All, index);
+                        else
+                            Debug.Log("Couldn't find that item!" + hit.transform.gameObject.ToString());
+                    }
                 }
             }
-
             shootInnac += spamInnac;
         }
-        else if (shooting && NM.stuffGun)
+        else if (shooting && NM.stuffGun) //Stuff Gun
         {
             var spray = transform.forward;
 
@@ -303,9 +314,17 @@ public class ShootyShooty : NetworkBehaviour
             var rnd = Random.Range(0, stuffs.Length);
             string stuffString = stuffs[rnd];
             shooting = false;
-            var stuff = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position, Random.rotation, 0);
-            stuff.GetComponent<Rigidbody>().AddForce(spray * 1000);
-            stuff.GetComponent<Rigidbody>().AddTorque(transform.up * 100);
+
+            int count = 1;
+            if (NM.shotGun)
+                count = 5;
+
+            for (int i = 0; i < count; i++)
+            {
+                var stuff = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position, Random.rotation, 0);
+                stuff.GetComponent<Rigidbody>().AddForce(spray * StuffGunForce);
+                stuff.GetComponent<Rigidbody>().AddTorque(transform.up * 100);
+            }
         }
 
         CalcInaccuracy();
@@ -391,7 +410,7 @@ public class ShootyShooty : NetworkBehaviour
         }
 
         //Global inaccuracy
-        if (outtaBullets || coolDown || drunkinnac)
+        if (outtaBullets || coolDown || drunkinnac || NM.shotGun)
             inac = true;
 
         //Apply accuracy
