@@ -102,10 +102,11 @@ public class ShootyShooty : NetworkBehaviour
 
     private readonly string[] stuffs =
     {
-        "arrow",
-        "BEVS",
-        "MrShooty",
-        "pokeball"
+        "cat"
+        //"arrow",
+        //"BEVS",
+        //"MrShooty",
+        //"pokeball"
     };
 
     private void Start()
@@ -254,8 +255,9 @@ public class ShootyShooty : NetworkBehaviour
                         hit.transform.gameObject.layer != 11)
                     {
                         var BS = bullet.GetComponent<bulletScript>();
+                        BS.SetHitPos(hit.transform);
                         BS.id = BM.NewHit(hit, hit.transform.gameObject);
-                        BS.hitPos = hit.point;
+                        //BS.hitPos = hit.transform;
                     }
 
                     //ShootyBall

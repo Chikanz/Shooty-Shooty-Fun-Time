@@ -112,7 +112,21 @@ public class NetworkMan : Photon.MonoBehaviour
             "Blink",
             "Stuff Gun",
             "Slow Mo",
-            "Shotgun"
+            "Shotgun",
+            "Rockets"
+        };
+
+    private string[] RPCNames =
+        {
+            "LowGrav",
+            "MakeJumpAcc",
+            "GodBullets",
+            "MumsSpaghetti",
+            "Blink",
+            "StuffGun",
+            "SlowMo",
+            "Shotty",
+            "Rockets"
         };
 
     //FX Bools
@@ -129,6 +143,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool slowMo;
     public bool oneShot;
     public bool shotGun;
+    public bool explosions;
 
     //Gamemode
     public bool GMFootBall;
@@ -319,73 +334,6 @@ public class NetworkMan : Photon.MonoBehaviour
 
     //Modifier Switches
     [PunRPC]
-    public void SendChatMessage(string text)
-    {
-        messages.Enqueue(text);
-        if (messages.Count > messageLimit)
-            messages.Dequeue();
-
-        chatBox.text = "";
-
-        foreach (string m in messages)
-        {
-            chatBox.text += m + "\n";
-        }
-
-        chatBox.text = chatBox.text.TrimEnd('\n');
-
-        if (!ChatEnabled)
-        {
-            chat.enabled = true;
-        }
-    }
-
-    [PunRPC]
-    public void RestartRound()
-    {
-        init.SetKill(false);
-        WinText.text = "";
-        player.GetComponent<Initalize>().health = 4;
-        player.GetComponentInChildren<ShootyShooty>().inClip = 10;
-        player.GetComponentInChildren<ShootyShooty>().reloading = false;
-        player.GetComponentInChildren<ShootyShooty>().outtaBullets = false;
-        player.GetComponentInChildren<ShootyShooty>().anim.SetTrigger("ForceIdle");
-
-        MoveToSpawn();
-
-        LockPlayer(true);
-
-        newRoundTimer = 3;
-
-        if (shotcaller)
-        {
-            ResetFX();
-            ChooseFX();
-            pv.RPC("FinishedCallingShots", PhotonTargets.Others, FXString);
-        }
-        FXList.text = FXString;
-
-        if (RestartEvent != null)
-            RestartEvent();
-    }
-
-    [PunRPC]
-    public void P1Up()
-    {
-        roundEnded = true;
-        WinText.text = "<color=" + ColToHex(P1Col) + ">Red Wins!</color>";
-        Score -= 1;
-    }
-
-    [PunRPC]
-    public void P2Up()
-    {
-        roundEnded = true;
-        WinText.text = "<color=" + ColToHex(P2Col) + ">Blue Wins!</color>";
-        Score += 1;
-    }
-
-    [PunRPC]
     public void LowGrav(bool lg)
     {
         lowGrav = lg;
@@ -493,7 +441,82 @@ public class NetworkMan : Photon.MonoBehaviour
         SS.maxClip = SS.inClip;
     }
 
+    [PunRPC]
+    public void Rockets(bool b)
+    {
+        explosions = b;
+        SS.bulletSpeed = b ? 5000 : 10000;
+    }
+
     //Detailed modifier RPCs
+
+    [PunRPC]
+    public void SendChatMessage(string text)
+    {
+        messages.Enqueue(text);
+        if (messages.Count > messageLimit)
+            messages.Dequeue();
+
+        chatBox.text = "";
+
+        foreach (string m in messages)
+        {
+            chatBox.text += m + "\n";
+        }
+
+        chatBox.text = chatBox.text.TrimEnd('\n');
+
+        if (!ChatEnabled)
+        {
+            chat.enabled = true;
+        }
+    }
+
+    [PunRPC]
+    public void RestartRound()
+    {
+        init.SetKill(false);
+        WinText.text = "";
+        player.GetComponent<Initalize>().health = 4;
+        player.GetComponentInChildren<ShootyShooty>().inClip = 10;
+        player.GetComponentInChildren<ShootyShooty>().reloading = false;
+        player.GetComponentInChildren<ShootyShooty>().outtaBullets = false;
+        player.GetComponentInChildren<ShootyShooty>().anim.SetTrigger("ForceIdle");
+
+        MoveToSpawn();
+
+        LockPlayer(true);
+
+        newRoundTimer = 3;
+
+        if (shotcaller)
+        {
+            ResetFX();
+            ChooseFX();
+            pv.RPC("FinishedCallingShots", PhotonTargets.Others, FXString);
+        }
+        FXList.text = FXString;
+
+        if (RestartEvent != null)
+            RestartEvent();
+    }
+
+    [PunRPC]
+    public void P1Up()
+    {
+        roundEnded = true;
+        WinText.text = "<color=" + ColToHex(P1Col) + ">Red Wins!</color>";
+        Score -= 1;
+    }
+
+    [PunRPC]
+    public void P2Up()
+    {
+        roundEnded = true;
+        WinText.text = "<color=" + ColToHex(P2Col) + ">Blue Wins!</color>";
+        Score += 1;
+    }
+
     [PunRPC]
     public void P1SlowMoSet(bool on)
     {
@@ -623,7 +646,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
         if (Random.value > 0.0f)
         {
-            gmSelect = Random.Range(0, 1);// GmCount);
+            gmSelect = Random.Range(1, GmCount);
             SetGameMode(gmSelect, true);
             FXString += GetGmString(gmSelect) + "\n";
         }
@@ -651,57 +674,10 @@ public class NetworkMan : Photon.MonoBehaviour
         FXString = FXString.TrimEnd(trimings);
     }
 
-    private void flipFX(int index, bool flip)
+    private void flipFX(int i, bool flip)
+    //I find it hilarious how this wouldn't work in any other situation
     {
-        switch (index)
-        {
-            case 0:
-                pv.RPC("LowGrav", PhotonTargets.All, flip);
-                break;
-
-            case 1:
-                pv.RPC("MakeJumpAcc", PhotonTargets.All, flip);
-                break;
-
-            case 2:
-                pv.RPC("GodBullets", PhotonTargets.All, flip);
-                break;
-
-            case 3:
-                pv.RPC("MumsSpaghetti", PhotonTargets.All, flip);
-                break;
-
-            case 4:
-                pv.RPC("Blink", PhotonTargets.All, flip);
-                break;
-
-            case 5:
-                pv.RPC("StuffGun", PhotonTargets.All, flip);
-                break;
-
-            case 6:
-                pv.RPC("SlowMo", PhotonTargets.All, flip);
-                break;
-
-            case 7:
-                pv.RPC("Shotty", PhotonTargets.All, flip);
-                break;
-
-            default:
-                Debug.Log("FXFlip Out of bounds");
-                break;
-
-                //case 3:
-                //    pv.RPC("Deagle", PhotonTargets.All, flip);
-                //    break;
-                //case 5:
-                //    pv.RPC("NoScope", PhotonTargets.All, flip);
-                //    break;
-
-                //case 2:
-                //    pv.RPC("AAAMDRUUUUNK", PhotonTargets.All, flip);
-                //    break;
-        }
+        pv.RPC(RPCNames[i], PhotonTargets.All, flip);
     }
 
     private void ResetFX()

@@ -156,6 +156,7 @@
     <Compile Include="Assets\Scripts\FPSDisplay.cs" />
     <Compile Include="Assets\Scripts\Football.cs" />
     <Compile Include="Assets\Scripts\GunAnmiation.cs" />
+    <Compile Include="Assets\Scripts\Impact.cs" />
     <Compile Include="Assets\Scripts\Initalize.cs" />
     <Compile Include="Assets\Scripts\LightHandler.cs" />
     <Compile Include="Assets\Scripts\NetworkMan.cs" />

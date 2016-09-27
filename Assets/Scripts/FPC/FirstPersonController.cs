@@ -95,6 +95,7 @@ public class FirstPersonController : MonoBehaviour
 
     private NetworkMan NM;
     private ShootyShooty SS;
+    private Rigidbody RB;
 
     private Vector3 blinkVel;
     private float blinkLerp = 99;
@@ -121,6 +122,10 @@ public class FirstPersonController : MonoBehaviour
     public string prevLastTouched;
 
     public bool Mlook = true;
+    public bool canMove = true;
+    public bool explosionMode;
+    private Vector3 landed;
+    public float stopMagnitude = 10;
 
     // Use this for initialization
     private void Start()
@@ -138,6 +143,7 @@ public class FirstPersonController : MonoBehaviour
 
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
         SS = GetComponentInChildren<ShootyShooty>();
+        RB = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
@@ -165,7 +171,7 @@ public class FirstPersonController : MonoBehaviour
             m_Jumping = false;
         }
 
-        //Somethig to do with falling?
+        //Something to do with falling?
         if (!m_CharacterController.isGrounded && !m_Jumping && m_PreviouslyGrounded)
         {
             m_MoveDir.y = 0f;
@@ -177,13 +183,28 @@ public class FirstPersonController : MonoBehaviour
         prevLastTouched = lastTouched;
 
         m_PreviouslyGrounded = m_CharacterController.isGrounded;
-    }
 
-    private void PlayLandingSound()
-    {
-        m_AudioSource.clip = m_LandSound;
-        m_AudioSource.Play();
-        m_NextStep = m_StepCycle + .5f;
+        //Explodey things
+        //if (explosionTimer > 0)
+        //{
+        //    explosionTimer -= Time.deltaTime;
+        //}
+        //else if (explosionMode)
+        //{
+        //    explosionMode = false;
+        //    SetExplosionMode(false);
+        //}
+
+        if (stopMagnitude < 10)
+        {
+            stopMagnitude += 0.5f;
+        }
+
+        if (RB.velocity.magnitude < stopMagnitude && explosionMode)
+        {
+            SetExplosionMode(false);
+            Debug.Log("Nah");
+        }
     }
 
     private void FixedUpdate()
@@ -206,43 +227,46 @@ public class FirstPersonController : MonoBehaviour
         //Makes cancelling directions possible
         //desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
 
-        m_MoveDir.x = desiredMove.x * speed;
-        m_MoveDir.z = desiredMove.z * speed;
-
-        if (m_CharacterController.isGrounded)
+        if (canMove)
         {
-            m_MoveDir.y = -m_StickToGroundForce;
+            m_MoveDir.x = desiredMove.x * speed;
+            m_MoveDir.z = desiredMove.z * speed;
 
-            if (m_Jump)
+            if (m_CharacterController.isGrounded)
             {
-                if (bounced)
+                m_MoveDir.y = -m_StickToGroundForce;
+
+                if (m_Jump)
                 {
-                    m_MoveDir.y = -velocity.y * bouncePadForce;
-                    bounced = false;
+                    if (bounced)
+                    {
+                        m_MoveDir.y = -velocity.y * bouncePadForce;
+                        bounced = false;
+                    }
+                    else
+                        m_MoveDir.y = m_JumpSpeed;
+
+                    PlayJumpSound();
+                    m_Jump = false;
+                    m_Jumping = true;
                 }
-                else
-                    m_MoveDir.y = m_JumpSpeed;
+            }
+            else if (doubleJump)
+            {
+                m_MoveDir.y = m_JumpSpeed * dJumpBonus;
+                doubleJump = false;
 
                 PlayJumpSound();
                 m_Jump = false;
                 m_Jumping = true;
             }
-        }
-        else if (doubleJump)
-        {
-            m_MoveDir.y = m_JumpSpeed * dJumpBonus;
-            doubleJump = false;
-
-            PlayJumpSound();
-            m_Jump = false;
-            m_Jumping = true;
-        }
-        else
-        {
-            m_MoveDir += Physics.gravity * m_GravityMultiplier * Time.fixedDeltaTime;
+            else
+            {
+                m_MoveDir += Physics.gravity * m_GravityMultiplier * Time.fixedDeltaTime;
+            }
         }
 
-        Vector3 outVel;
+        Vector3 outVel = Vector3.zero;
         if (NM.drunk)
         {
             slippyVel = Vector3.Lerp(slippyVel, m_MoveDir, 5 * friction * friction * friction * Time.deltaTime);
@@ -252,16 +276,20 @@ public class FirstPersonController : MonoBehaviour
         }
         else
         {
-            velocity = m_MoveDir;
-            m_HeadBob.HorizontalBobRange = 0.1f;
-            outVel = m_MoveDir;
+            if (canMove)
+            {
+                velocity = m_MoveDir;
+                m_HeadBob.HorizontalBobRange = 0.1f;
+                outVel = m_MoveDir;
+            }
         }
 
         if (blinkLerp <= 1)
             outVel = Vector3.zero;
 
         //BIG DADDY MOVE
-        m_CollisionFlags = m_CharacterController.Move(outVel * Time.fixedDeltaTime);
+        if (canMove)
+            m_CollisionFlags = m_CharacterController.Move(outVel * Time.fixedDeltaTime);
 
         ProgressStepCycle(speed);
         UpdateCameraPosition(speed);
@@ -293,6 +321,20 @@ public class FirstPersonController : MonoBehaviour
         {
             blinkTimer += Time.deltaTime;
         }
+
+        //THE BIGGEST HACK IN THE HISTORY OF MANKIND
+        if (landed != Vector3.zero)
+        {
+            transform.position = landed;
+            landed = Vector3.zero;
+        }
+    }
+
+    private void PlayLandingSound()
+    {
+        m_AudioSource.clip = m_LandSound;
+        m_AudioSource.Play();
+        m_NextStep = m_StepCycle + .5f;
     }
 
     private void PlayJumpSound()
@@ -455,5 +497,25 @@ public class FirstPersonController : MonoBehaviour
         }
 
         body.AddForceAtPosition(m_CharacterController.velocity, hit.point, ForceMode.Impulse);
+    }
+
+    private void SetExplosionMode(bool b)
+    {
+        explosionMode = b;
+        canMove = !b;
+        GetComponent<Rigidbody>().isKinematic = !b;
+        GetComponent<Rigidbody>().freezeRotation = b;
+        stopMagnitude = 0;
+
+        if (!b)
+        {
+            landed = transform.position;
+            m_MoveDir.y = 0;
+        }
+    }
+
+    public void Explode()
+    {
+        SetExplosionMode(true);
     }
 }

@@ -60,4 +60,5 @@ MonoBehaviour:
   - SlowMoset
   - P1SlowMoSet
   - P2SlowMoSet
+  - Rockets
   DisableAutoOpenWizard: 1

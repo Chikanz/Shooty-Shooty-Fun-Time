@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public class bulletScript : MonoBehaviour
 {
     public int id;
-    public Vector3 hitPos;
+    public Transform hitPos;
 
     private BulletManager BM;
     private NetworkMan NM;
@@ -24,13 +25,16 @@ public class bulletScript : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (Vector3.Distance(transform.position, hitPos) <= detectDistance)
+        //MATH MAGIC
+        //http://forum.unity3d.com/threads/how-do-i-detect-if-an-object-is-in-front-of-another-object.53188/
+        Vector3 heading = transform.position - hitPos.position;
+        float dot = Vector3.Dot(heading, hitPos.forward);
+        //
+        if (dot < 0) //If in radius or behind
         {
             BM.CreateNextHit(id);
             Destroy(gameObject);
         }
-
-        detectDistance = Time.timeScale == 1 ? 2 : 0.4f; //enable more accuracy during slowmo for more believeable impacts
     }
 
     public void OnTriggerEnter(Collider other)
@@ -39,7 +43,22 @@ public class bulletScript : MonoBehaviour
         {
             if (SS.slowMoInUse)
                 other.transform.GetComponent<Rigidbody>().AddForce(transform.forward * SS.ShootyBallForce);
+            return;
             //other.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * SS.ShootyBallForce, other.contacts[0].point);
         }
+
+        //Not a hack I swear, code gets called after object has been destroyed causing errors but behaving as expected.
+        //Never mind I just tested it, total hack.
+        try
+        {
+            BM.CreateNextHit(id);
+            Destroy(gameObject);
+        }
+        catch (Exception e) { }
+    }
+
+    public void SetHitPos(Transform hp)
+    {
+        hitPos = hp;
     }
 }
