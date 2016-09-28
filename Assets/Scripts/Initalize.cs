@@ -52,9 +52,6 @@ public class Initalize : Photon.MonoBehaviour
 
     private void Start()
     {
-        PhotonNetwork.sendRate = 60;
-        PhotonNetwork.sendRateOnSerialize = 60;
-
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
         anim = GetComponentInChildren<Animator>();
         FPcam = transform.Find("FirstPersonCharacter");
@@ -71,7 +68,7 @@ public class Initalize : Photon.MonoBehaviour
         if (photonView.isMine)
         {
             hurtImage2 = transform.Find("/UI Groups/Main UI/HurtImage").GetComponent<Image>();
-            gameObject.layer = 2;
+            //gameObject.layer = 2;
 
             GetComponent<Rigidbody>().useGravity = true;
             GetComponentInChildren<FirstPersonController>().enabled = true;
@@ -87,7 +84,7 @@ public class Initalize : Photon.MonoBehaviour
 
             GetComponentInChildren<GunAnmiation>().enabled = true;
 
-            transform.FindChild("Body").gameObject.layer = 2;
+            //transform.FindChild("Body").gameObject.layer = 2;
 
             foreach (Camera cam in GetComponentsInChildren<Camera>())
                 cam.enabled = true;
@@ -169,8 +166,8 @@ public class Initalize : Photon.MonoBehaviour
     {
         health -= damage;
 
-        if (photonView.isMine)
-            hurtImage2.color = hurtImageColor;
+        //if (photonView.isMine)
+        //  hurtImage2.color = hurtImageColor;
 
         if (health <= 0 && photonView.isMine)
         {
@@ -224,6 +221,7 @@ public class Initalize : Photon.MonoBehaviour
 
         if (NM.MDeath)
         {
+            GetComponent<FirstPersonController>().SetExplosionMode(false);
             NM.MoveToSpawn();
             return;
         }

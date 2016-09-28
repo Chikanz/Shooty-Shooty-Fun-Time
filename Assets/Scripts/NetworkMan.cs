@@ -150,19 +150,19 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public bool GMRace;
 
-    // Use this for initialization
     private void Start()
     {
         //Time.fixedDeltaTime = 0.01f;
         //PhotonNetwork.offlineMode = true;
         //PhotonNetwork.logLevel = PhotonLogLevel.Full;
         PhotonNetwork.ConnectUsingSettings("0.1");
+        PhotonNetwork.sendRate = 60;
+        PhotonNetwork.sendRateOnSerialize = 60;
         pv = GetComponent<PhotonView>();
         FXList = transform.Find("/UI Groups/Main UI/FX Text").GetComponent<Text>();
         FXCountdown = transform.Find("/UI Groups/Main UI/Round Countdown").GetComponent<Text>();
     }
 
-    // Update is called once per frame
     private void Update()
     {
         //ScoreText.text = Score[0] + " - " + Score[1];
@@ -424,6 +424,8 @@ public class NetworkMan : Photon.MonoBehaviour
     public void StuffGun(bool b)
     {
         stuffGun = b;
+        PhotonNetwork.sendRate = b ? 30 : 60;
+        PhotonNetwork.sendRateOnSerialize = b ? 30 : 60;
     }
 
     [PunRPC]

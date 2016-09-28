@@ -10,18 +10,43 @@ public class StuffGunObject : MonoBehaviour
     private Rigidbody RB;
     public int SpazForce;
     public int SpazChance = 20;
+    public AudioClip[] Clips;
+    private AudioSource AS;
+    private float playOnAwakeDelay;
+    private bool playedOnAwake = false;
 
     private void Start()
     {
+        AS = GetComponent<AudioSource>();
+        AS.clip = Clips[Random.Range(0, Clips.Length)];
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
         NetworkMan.RestartEvent += Die;
         RB = GetComponent<Rigidbody>();
+        playOnAwakeDelay = Random.Range(0, 0.1f);
     }
 
     private void Update()
     {
+        if (playOnAwakeDelay > 0)
+            playOnAwakeDelay -= Time.deltaTime;
+        else if (!playedOnAwake)
+        {
+            AS.Play();
+            playedOnAwake = true;
+        }
+
         if (TTL >= 0)
             TTL -= Time.deltaTime;
+
+        if (Random.Range(0, 60) == 7)
+        {
+            if (AS.time == 0)
+            {
+                AS.clip = Clips[Random.Range(0, Clips.Length)];
+                AS.pitch = Random.Range(-2, 2);
+                AS.Play();
+            }
+        }
     }
 
     private void Die()
@@ -50,11 +75,8 @@ public class StuffGunObject : MonoBehaviour
 
         if (c.gameObject.layer == 10)
         {
-            //if (Random.Range(0, 20) == 7)
-            //{
             Vector3 rd = new Vector3(Random.value, Random.value, Random.value);
             GetComponent<Rigidbody>().AddForce(SpazForce * rd);
-            //}
         }
 
         if (NM.GMFootBall)
@@ -71,7 +93,6 @@ public class StuffGunObject : MonoBehaviour
             if (c.gameObject.GetComponent<Initalize>().photonView.isMine)
             {
                 c.gameObject.GetComponent<Initalize>().Die();
-                return;
             }
         }
 

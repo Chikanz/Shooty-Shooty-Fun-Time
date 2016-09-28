@@ -491,6 +491,11 @@ public class FirstPersonController : MonoBehaviour
 
         touchingDoubleJump = (hit.transform.tag == "DoubleJump");
 
+        if (hit.transform.tag == "Stuff" && gameObject.GetComponent<Initalize>().photonView.isMine)
+        {
+            gameObject.GetComponent<Initalize>().Die();
+        }
+
         if (body == null || body.isKinematic)
         {
             return;
@@ -499,7 +504,7 @@ public class FirstPersonController : MonoBehaviour
         body.AddForceAtPosition(m_CharacterController.velocity, hit.point, ForceMode.Impulse);
     }
 
-    private void SetExplosionMode(bool b)
+    public void SetExplosionMode(bool b)
     {
         explosionMode = b;
         canMove = !b;

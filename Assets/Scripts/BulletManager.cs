@@ -8,6 +8,9 @@ public class BulletManager : MonoBehaviour
     //private List<ParticleSystem> particleList = new List<ParticleSystem>();
     private List<GameObject> hitList = new List<GameObject>();
 
+    private List<GameObject> PetList = new List<GameObject>();
+
+    public int PetMax;
     public int maxImpacts = 2;
 
     public GameObject LevelHit;
@@ -48,5 +51,15 @@ public class BulletManager : MonoBehaviour
         //}
 
         return hitList.Count - 1;
+    }
+
+    public void NewPet(GameObject pet)
+    {
+        PetList.Add(pet);
+        if (PetList.Count > PetMax)
+        {
+            Destroy(PetList[0]);
+            PetList.RemoveAt(0);
+        }
     }
 }

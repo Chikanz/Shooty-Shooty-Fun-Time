@@ -102,7 +102,8 @@ public class ShootyShooty : NetworkBehaviour
 
     private readonly string[] stuffs =
     {
-        "cat"
+        "Doggo",
+        "cat",
         //"arrow",
         //"BEVS",
         //"MrShooty",
@@ -149,10 +150,9 @@ public class ShootyShooty : NetworkBehaviour
         {
             Playerpv.RPC("PewPew", PhotonTargets.Others, null);
             MakeCasing();
-            gunSound.Play();
+            if (!NM.stuffGun)
+                gunSound.Play();
             muzzleFlash.Play();
-
-            FPC.KickCam();
 
             anim.SetTrigger("Shooting");
 
@@ -306,6 +306,7 @@ public class ShootyShooty : NetworkBehaviour
                     }
                 }
             }
+            FPC.KickCam();
             shootInnac += spamInnac;
         }
         else if (shooting && NM.stuffGun) //Stuff Gun
@@ -316,8 +317,8 @@ public class ShootyShooty : NetworkBehaviour
             spray.y += Random.Range(-inaccuracy, inaccuracy);
             spray.z += Random.Range(-inaccuracy, inaccuracy);
 
-            var rnd = Random.Range(0, stuffs.Length);
-            string stuffString = stuffs[rnd];
+            var animal = NM.playerNumber;
+            string stuffString = stuffs[animal];
             shooting = false;
 
             int count = 1;
@@ -326,9 +327,10 @@ public class ShootyShooty : NetworkBehaviour
 
             for (int i = 0; i < count; i++)
             {
-                var stuff = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position, Random.rotation, 0);
-                stuff.GetComponent<Rigidbody>().AddForce(spray * StuffGunForce);
-                stuff.GetComponent<Rigidbody>().AddTorque(transform.up * 100);
+                var pet = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position, Random.rotation, 0);
+                pet.GetComponent<Rigidbody>().AddForce(spray * StuffGunForce);
+                pet.GetComponent<Rigidbody>().AddTorque(transform.up * 100);
+                BM.NewPet(pet);
             }
         }
 
@@ -407,11 +409,14 @@ public class ShootyShooty : NetworkBehaviour
         if (FPC.m_Jumping)
             inac = true;
 
+        //Override movement
+        if (NM.GMRace)
+            inac = false;
+
         //Jump Case
         if (NM.JumpAcc)
         {
             inac = !FPC.m_Jumping;
-            //FPC.velocity.y = 1;
         }
 
         //Global inaccuracy
