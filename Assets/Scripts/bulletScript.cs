@@ -25,12 +25,14 @@ public class bulletScript : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        if (transform == null) return;
+
         //MATH MAGIC
         //http://forum.unity3d.com/threads/how-do-i-detect-if-an-object-is-in-front-of-another-object.53188/
         Vector3 heading = transform.position - hitPos.position;
         float dot = Vector3.Dot(heading, hitPos.forward);
         //
-        if (dot < 0) //If in radius or behind
+        if (dot < 0) //If behind
         {
             BM.CreateNextHit(id);
             Destroy(gameObject);
@@ -47,14 +49,8 @@ public class bulletScript : MonoBehaviour
             //other.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * SS.ShootyBallForce, other.contacts[0].point);
         }
 
-        //Not a hack I swear, code gets called after object has been destroyed causing errors but behaving as expected.
-        //Never mind I just tested it, total hack.
-        try
-        {
-            BM.CreateNextHit(id);
-            Destroy(gameObject);
-        }
-        catch (Exception e) { }
+        BM.CreateNextHit(id);
+        Destroy(gameObject);
     }
 
     public void SetHitPos(Transform hp)

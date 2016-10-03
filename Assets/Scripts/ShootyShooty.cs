@@ -104,10 +104,6 @@ public class ShootyShooty : NetworkBehaviour
     {
         "Doggo",
         "cat",
-        //"arrow",
-        //"BEVS",
-        //"MrShooty",
-        //"pokeball"
     };
 
     private void Start()
@@ -118,10 +114,6 @@ public class ShootyShooty : NetworkBehaviour
         prevPos = transform.position;
         Gunlight = GetComponentInChildren<Light>();
         FPC = player.GetComponent<FirstPersonController>();
-
-        //Makey UI
-        //var UIinst = Instantiate(UI) as GameObject;
-        //Image[] images = UIinst.GetComponentsInChildren<Image>();
 
         var CH = GameObject.Find("UI Groups/Main UI/CrossHair");
         CH.GetComponent<Canvas>().enabled = true;

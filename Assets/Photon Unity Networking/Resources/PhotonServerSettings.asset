@@ -13,7 +13,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HostType: 1
   Protocol: 0
-  ServerAddress: 
+  ServerAddress: 192.168.1.107
   ServerPort: 5055
   AppID: 3f8e61e9-c05f-49f1-8f4b-b33d0c36e0e0
   PreferredRegion: 5
@@ -61,4 +61,5 @@ MonoBehaviour:
   - P1SlowMoSet
   - P2SlowMoSet
   - Rockets
+  - MakeActive
   DisableAutoOpenWizard: 1

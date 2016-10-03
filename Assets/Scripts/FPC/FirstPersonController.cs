@@ -521,6 +521,8 @@ public class FirstPersonController : MonoBehaviour
 
     public void Explode()
     {
+        if (!GetComponent<PhotonView>().isMine) return;
+
         SetExplosionMode(true);
     }
 }

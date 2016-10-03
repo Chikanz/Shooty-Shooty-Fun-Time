@@ -7,13 +7,32 @@ public class Impact : MonoBehaviour
     public float power = 10.0F;
     private NetworkMan NM;
     private Transform splodeySphere;
+    public Color otherCol;
 
     private void Start()
     {
+    }
+
+    private void Update()
+    {
+    }
+
+    [PunRPC]
+    public void MakeActive()
+    {
+        Activate(true);
+    }
+
+    public void Activate(bool rpc)
+    {
+        if (!rpc)
+            GetComponent<PhotonView>().RPC("MakeActive", PhotonTargets.Others, null);
+
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
 
         if (NM.explosions)
         {
+            Destroy(gameObject, 1);
             Vector3 explosionPos = transform.position;
             Collider[] colliders = Physics.OverlapSphere(explosionPos, radius);
             foreach (Collider hit in colliders)
@@ -25,7 +44,7 @@ public class Impact : MonoBehaviour
 
                 Rigidbody rb = hit.GetComponentInParent<Rigidbody>();
                 if (rb != null)
-                    rb.AddExplosionForce(power, explosionPos, radius, 0);
+                    rb.AddExplosionForce(power, explosionPos, radius, 3.0F);
             }
             splodeySphere = transform.GetChild(0);
             splodeySphere.gameObject.SetActive(true);
@@ -33,12 +52,11 @@ public class Impact : MonoBehaviour
         }
         else
         {
-            GetComponent<ParticleSystem>().Play();
-        }
-    }
+            GetComponent<Renderer>().material.color = otherCol;
+            GetComponent<ParticleSystemRenderer>().material.color = otherCol;
 
-    // Update is called once per frame
-    private void Update()
-    {
+            GetComponent<ParticleSystem>().Play();
+            GetComponent<MeshRenderer>().enabled = true;
+        }
     }
 }

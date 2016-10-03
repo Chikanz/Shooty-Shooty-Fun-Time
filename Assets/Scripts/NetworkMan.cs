@@ -10,11 +10,12 @@ using Random = UnityEngine.Random;
 public class NetworkMan : Photon.MonoBehaviour
 {
     public Text WinText;
-
     public Text connectionText;
 
     [SerializeField]
     private Transform[] SpawnPoints;
+
+    public GameObject[] Plants;
 
     private Transform spawn;
     private Transform OGSpawn;
@@ -47,7 +48,6 @@ public class NetworkMan : Photon.MonoBehaviour
     public InputField chatMessage;
     private Queue messages = new Queue();
     private const int messageLimit = 10;
-    private bool ChatEnabled = false;
 
     public Color P1Col = new Color();
     public Color P2Col = new Color();
@@ -79,7 +79,7 @@ public class NetworkMan : Photon.MonoBehaviour
     private bool playerLocked;
 
     public bool roundEnded;
-    public bool shotcaller;
+    //public bool shotcaller;
 
     public delegate void RoundEvent();
 
@@ -116,7 +116,19 @@ public class NetworkMan : Photon.MonoBehaviour
             "Rockets"
         };
 
-    private string[] RPCNames =
+    private readonly string[] GMText =
+    {
+        "Shooty Ball",
+        "Race",
+    };
+
+    private readonly string[] GMRPCs =
+   {
+        "Football",
+        "Race",
+    };
+
+    private string[] FXRPCs =
         {
             "LowGrav",
             "MakeJumpAcc",
@@ -165,23 +177,25 @@ public class NetworkMan : Photon.MonoBehaviour
 
     private void Update()
     {
-        //ScoreText.text = Score[0] + " - " + Score[1];
-
         connectionText.text = PhotonNetwork.connectionStateDetailed.ToString() + "   " + PhotonNetwork.GetPing();
 
         if (Input.GetKeyDown(KeyCode.Backslash))
         {
-            if (ChatEnabled)
+            if (chat.enabled)
             {
+                //Close
                 chatMessage.interactable = true;
-                ChatEnabled = false;
                 chat.enabled = false;
-                player.GetComponent<FirstPersonController>().allowInput = true;
+
+                FPC.allowInput = true;
+                FPC.Mlook = true;
             }
             else
             {
-                player.GetComponent<FirstPersonController>().allowInput = false;
-                ChatEnabled = true;
+                //Open
+                FPC.allowInput = false;
+                FPC.Mlook = false;
+
                 chat.enabled = true;
                 chatMessage.interactable = true;
                 chatMessage.Select();
@@ -240,25 +254,18 @@ public class NetworkMan : Photon.MonoBehaviour
             FXString = "";
             FXList.text = "";
             FXCountdown.text = "";
-
-            if (gmSelect == 0 && shotcaller)
-            {
-                //ShootyBall.GetComponent<Rigidbody>().useGravity = true;
-            }
-
-            shotcaller = false;
-            //roundEnded = false;
         }
 
         //End Round Timer
         if (PhotonNetwork.inRoom)
         {
-            //if (init.died)
-            if (roundEnded)
+            if (roundEnded && PhotonNetwork.isMasterClient)
+            {
                 endRoundTimer -= Time.deltaTime;
+            }
             endRoundTimer = Mathf.Clamp(endRoundTimer, 0, 10);
 
-            if (endRoundTimer <= 0 && roundEnded && shotcaller)
+            if (endRoundTimer <= 0 && roundEnded && PhotonNetwork.isMasterClient)
             {
                 roundEnded = false;
                 pv.RPC("RestartRound", PhotonTargets.All, null);
@@ -491,7 +498,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
         newRoundTimer = 3;
 
-        if (shotcaller)
+        if (PhotonNetwork.isMasterClient)
         {
             ResetFX();
             ChooseFX();
@@ -507,6 +514,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public void P1Up()
     {
         roundEnded = true;
+        endRoundTimer = 5;
         WinText.text = "<color=" + ColToHex(P1Col) + ">Red Wins!</color>";
         Score -= 1;
     }
@@ -515,6 +523,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public void P2Up()
     {
         roundEnded = true;
+        endRoundTimer = 5;
         WinText.text = "<color=" + ColToHex(P2Col) + ">Blue Wins!</color>";
         Score += 1;
     }
@@ -577,9 +586,9 @@ public class NetworkMan : Photon.MonoBehaviour
         shootyBallStuff.gameObject.SetActive(b);
         MDeath = b;
         player.GetComponentInChildren<FirstPersonController>().blinkSpeed = b ? 2 : 4; //Half blink speed when true
-        //SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
+        SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
 
-        if (!shotcaller) return; //Shot Callers only
+        if (!PhotonNetwork.isMasterClient) return; //Master client only
 
         if (b)
             ShootyBall = PhotonNetwork.Instantiate("Shooty Ball", SpawnPoints[4].position, Quaternion.identity, 0);
@@ -601,6 +610,9 @@ public class NetworkMan : Photon.MonoBehaviour
             ResetSpawn();
             MoveToSpawn();
         }
+
+        Plants[0].SetActive(b);
+        Plants[1].SetActive(b);
         FPC.blinkDistance = b ? 0.7f : 2;
         //FPC.blinkDistance = 1.2f;
         SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
@@ -629,6 +641,7 @@ public class NetworkMan : Photon.MonoBehaviour
         pv.RPC("SendChatMessage", PhotonTargets.All, otherPlayer.name + " has quit");
     }
 
+    //THE DECIDER
     private void ChooseFX()
     {
         int numFX;
@@ -646,13 +659,14 @@ public class NetworkMan : Photon.MonoBehaviour
         else
             numFX = 3;
 
-        if (Random.value > 0.0f)
+        if (Random.value > 0.25f)
         {
-            gmSelect = Random.Range(1, GmCount);
-            SetGameMode(gmSelect, true);
-            FXString += GetGmString(gmSelect) + "\n";
+            gmSelect = Random.Range(0, GmCount);
+            SetGM(gmSelect, true);
+            FXString += GMText[gmSelect] + "\n";
         }
 
+        //Exclusions
         List<int> pastIndexes = new List<int>();
         if (gmSelect == 0)
             pastIndexes.Add(2); //Exclude godbullets
@@ -662,6 +676,7 @@ public class NetworkMan : Photon.MonoBehaviour
             pastIndexes.Add(2); //Exclude godbullets
             pastIndexes.Add(3); //Exclude OneShot
         }
+
         while (pastIndexes.Count <= numFX)
         {
             int FXindex = Random.Range(0, FXText.Count());
@@ -679,14 +694,14 @@ public class NetworkMan : Photon.MonoBehaviour
     private void flipFX(int i, bool flip)
     //I find it hilarious how this wouldn't work in any other situation
     {
-        pv.RPC(RPCNames[i], PhotonTargets.All, flip);
+        pv.RPC(FXRPCs[i], PhotonTargets.All, flip);
     }
 
     private void ResetFX()
     {
         if (gmSelect != -1)
         {
-            SetGameMode(gmSelect, false);
+            SetGM(gmSelect, false);
             gmSelect = -1;
         }
 
@@ -699,33 +714,9 @@ public class NetworkMan : Photon.MonoBehaviour
         }
     }
 
-    private void SetGameMode(int i, bool b)
+    private void SetGM(int i, bool b)
     {
-        switch (i)
-        {
-            case 0:
-                pv.RPC("Football", PhotonTargets.All, b);
-                break;
-
-            case 1:
-                pv.RPC("Race", PhotonTargets.All, b);
-                break;
-        }
-    }
-
-    private string GetGmString(int i)
-    {
-        switch (i)
-        {
-            case 0:
-                return "Shooty Ball";
-                break;
-
-            case 1:
-                return "Race";
-                break;
-        }
-        return "Uh oh";
+        pv.RPC(GMRPCs[i], PhotonTargets.All, b);
     }
 
     public void LockPlayer(bool l)
@@ -742,9 +733,6 @@ public class NetworkMan : Photon.MonoBehaviour
         else
             pv.RPC("P2Up", PhotonTargets.All, null);
 
-        shotcaller = true;
-        roundEnded = true;
-        endRoundTimer = 5;
         MDeath = false;
     }
 

@@ -4,20 +4,19 @@ using UnityEngine;
 
 public class BulletManager : MonoBehaviour
 {
-    //private List<MeshRenderer> rendererList = new List<MeshRenderer>();
-    //private List<ParticleSystem> particleList = new List<ParticleSystem>();
     private List<GameObject> hitList = new List<GameObject>();
-
     private List<GameObject> PetList = new List<GameObject>();
 
     public int PetMax;
     public int maxImpacts = 2;
 
     public GameObject LevelHit;
+    private NetworkMan NM;
 
     // Use this for initialization
     private void Start()
     {
+        NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
     }
 
     // Update is called once per frame
@@ -27,21 +26,22 @@ public class BulletManager : MonoBehaviour
 
     public void CreateNextHit(int id)
     {
-        hitList[id].gameObject.SetActive(true);
+        hitList[id].GetComponent<Impact>().Activate(false);
     }
 
     public int NewHit(RaycastHit hit, GameObject other)
     {
-        var c = Instantiate(LevelHit, hit.point, hit.transform.rotation) as GameObject;
-
+        var c = PhotonNetwork.Instantiate("LevelHit", hit.point, hit.transform.rotation, 0);
         hitList.Add(c);
 
-        if (other.GetComponent<Renderer>())
+        c.transform.parent = NM.transform; //Make child
+
+        if (other.GetComponent<Renderer>() != null)
         {
-            var othercol = other.GetComponent<Renderer>().material.color * 0.5f;
-            c.GetComponent<Renderer>().material.color = othercol;
-            c.GetComponent<ParticleSystemRenderer>().material.color = othercol;
+            c.GetComponent<Impact>().otherCol = other.GetComponent<Renderer>().material.color * 0.5f;
         }
+
+        c.transform.name = "Impact id" + Random.Range(0, 999);
 
         //if (rendererList.Count > maxImpacts) //Cap
         //{

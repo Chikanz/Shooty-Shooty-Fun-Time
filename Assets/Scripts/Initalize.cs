@@ -229,8 +229,6 @@ public class Initalize : Photon.MonoBehaviour
         if (!NM.roundEnded)
         {
             NM.pv.RPC(NM.playerNumber == 0 ? "P2Up" : "P1Up", PhotonTargets.All, null);
-            NM.shotcaller = true;
-            NM.endRoundTimer = 5;
         }
 
         SetKill(true);
