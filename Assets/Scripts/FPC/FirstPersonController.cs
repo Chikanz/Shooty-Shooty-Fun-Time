@@ -33,7 +33,7 @@ public class FirstPersonController : MonoBehaviour
     private float m_StickToGroundForce;
 
     [SerializeField]
-    private MouseLook m_MouseLook;
+    public MouseLook m_MouseLook;
 
     [SerializeField]
     private bool m_UseFovKick;
@@ -524,5 +524,11 @@ public class FirstPersonController : MonoBehaviour
         if (!GetComponent<PhotonView>().isMine) return;
 
         SetExplosionMode(true);
+    }
+
+    public void changeSensitivity(float x, float y)
+    {
+        m_MouseLook.XSensitivity = x;
+        m_MouseLook.YSensitivity = y;
     }
 }

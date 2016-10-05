@@ -19,6 +19,9 @@ public class UIManager : MonoBehaviour
     public Image[] blinkImages;
     public Color blinkActiveColor;
     public Color blinkInactiveColor;
+    public bool excOn = false;
+
+    public Canvas EscapeCanvas;
 
     public Image[] ScoreImages;
 
@@ -32,6 +35,17 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            excOn = !excOn;
+            //Clean this up pls
+            EscapeCanvas.enabled = excOn;
+            NM.player.GetComponent<FirstPersonController>().m_MouseLook.SetCursorLock(!excOn);
+            NM.player.GetComponent<FirstPersonController>().enabled = !excOn;
+            NM.player.GetComponent<FirstPersonController>().m_MouseLook.m_cursorIsLocked = !excOn;
+            NM.player.GetComponentInChildren<ShootyShooty>().enabled = !excOn;
+        }
+
         UpdateScoreImages(NM.Score);
 
         if (canUpdate)

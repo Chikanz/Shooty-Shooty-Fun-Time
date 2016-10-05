@@ -26,7 +26,8 @@ public class BulletManager : MonoBehaviour
 
     public void CreateNextHit(int id)
     {
-        hitList[id].GetComponent<Impact>().Activate(false);
+        if (hitList[id] != null)
+            hitList[id].GetComponent<Impact>().Activate(false);
     }
 
     public int NewHit(RaycastHit hit, GameObject other)

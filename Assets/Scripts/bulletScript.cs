@@ -19,7 +19,6 @@ public class bulletScript : MonoBehaviour
         BM = GameObject.Find("Bullet Manager").GetComponent<BulletManager>();
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
         SS = NM.SS;
-        Destroy(gameObject, 5);
     }
 
     // Update is called once per frame
@@ -34,6 +33,7 @@ public class bulletScript : MonoBehaviour
         //
         if (dot < 0) //If behind
         {
+            Debug.Log("dotted");
             BM.CreateNextHit(id);
             Destroy(gameObject);
         }
@@ -41,6 +41,12 @@ public class bulletScript : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
+        if (other.tag == "Bullet")
+            return;
+
+        if (BM == null)
+            Start();
+
         if (other.gameObject.layer == 11)
         {
             if (SS.slowMoInUse)
@@ -51,6 +57,7 @@ public class bulletScript : MonoBehaviour
 
         BM.CreateNextHit(id);
         Destroy(gameObject);
+        Debug.Log("collided");
     }
 
     public void SetHitPos(Transform hp)

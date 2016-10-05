@@ -27,6 +27,8 @@ public class StuffGunObject : MonoBehaviour
 
     private void Update()
     {
+        AS.pitch = Time.timeScale;
+
         if (playOnAwakeDelay > 0)
             playOnAwakeDelay -= Time.deltaTime;
         else if (!playedOnAwake)
@@ -43,7 +45,6 @@ public class StuffGunObject : MonoBehaviour
             if (AS.time == 0)
             {
                 AS.clip = Clips[Random.Range(0, Clips.Length)];
-                AS.pitch = Random.Range(-2, 2);
                 AS.Play();
             }
         }

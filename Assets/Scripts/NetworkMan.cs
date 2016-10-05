@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityStandardAssets.Characters.FirstPerson;
+using UnityStandardAssets.CinematicEffects;
 using Random = UnityEngine.Random;
 
 public class NetworkMan : Photon.MonoBehaviour
@@ -23,6 +25,8 @@ public class NetworkMan : Photon.MonoBehaviour
     public Camera lobbyCam;
 
     public GameObject RaceFallBounds;
+
+    public Slider sensSlider;
 
     public GameObject player;
 
@@ -55,6 +59,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool lowGrav = false;
 
     public string oldChatText = "";
+    private bool ChatEnabled;
 
     public PhotonView pv;
 
@@ -736,9 +741,32 @@ public class NetworkMan : Photon.MonoBehaviour
         MDeath = false;
     }
 
+    //UI functions
+
     public void RaceSpawnReset()
     {
         spawn = PhotonNetwork.isMasterClient ? SpawnPoints[5] : SpawnPoints[6];
+    }
+
+    public void ReloadScene()
+    {
+        SceneManager.LoadScene("scene1");
+    }
+
+    public void ToggeAO(bool b)
+    {
+        player.GetComponentInChildren<AmbientOcclusion>().enabled = b;
+    }
+
+    public void sensitivity()
+    {
+        float s = sensSlider.value;
+        player.GetComponent<FirstPersonController>().changeSensitivity(s, s);
+    }
+
+    public void Getouttahere()
+    {
+        Application.Quit();
     }
 
     //Depricated functions

@@ -15,9 +15,7 @@ TagManager:
   - DoubleJump
   - CheckPoint
   - FinishLine
-  - LowGrav
-  - JumpAcc
-  - BEVS
+  - Bullet
   layers:
   - Default
   - TransparentFX
