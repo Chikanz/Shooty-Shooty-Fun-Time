@@ -17,11 +17,21 @@ public class BulletManager : MonoBehaviour
     private void Start()
     {
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+        NetworkMan.RestartEvent += die;
     }
 
     // Update is called once per frame
     private void Update()
     {
+    }
+
+    public void die()
+    {
+        foreach (GameObject t in hitList)
+        {
+            Destroy(t);
+        }
+        hitList.Clear();
     }
 
     public void CreateNextHit(int id)

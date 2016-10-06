@@ -10,6 +10,7 @@ public class bulletScript : MonoBehaviour
     private BulletManager BM;
     private NetworkMan NM;
     private ShootyShooty SS;
+    public bool impact = true;
 
     private float detectDistance;
 
@@ -24,18 +25,19 @@ public class bulletScript : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (transform == null) return;
-
         //MATH MAGIC
         //http://forum.unity3d.com/threads/how-do-i-detect-if-an-object-is-in-front-of-another-object.53188/
-        Vector3 heading = transform.position - hitPos.position;
-        float dot = Vector3.Dot(heading, hitPos.forward);
-        //
-        if (dot < 0) //If behind
+        if (impact)
         {
-            Debug.Log("dotted");
-            BM.CreateNextHit(id);
-            Destroy(gameObject);
+            Vector3 heading = transform.position - hitPos.position;
+            float dot = Vector3.Dot(heading, hitPos.forward);
+            //
+            if (dot < 0) //If behind
+            {
+                //Debug.Log("dotted");
+                BM.CreateNextHit(id);
+                Destroy(gameObject);
+            }
         }
     }
 
@@ -47,17 +49,17 @@ public class bulletScript : MonoBehaviour
         if (BM == null)
             Start();
 
+        //Special case for slow mo, don't use for anything else
         if (other.gameObject.layer == 11)
         {
             if (SS.slowMoInUse)
                 other.transform.GetComponent<Rigidbody>().AddForce(transform.forward * SS.ShootyBallForce);
             return;
-            //other.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * SS.ShootyBallForce, other.contacts[0].point);
         }
 
         BM.CreateNextHit(id);
         Destroy(gameObject);
-        Debug.Log("collided");
+        //Debug.Log("collided");
     }
 
     public void SetHitPos(Transform hp)

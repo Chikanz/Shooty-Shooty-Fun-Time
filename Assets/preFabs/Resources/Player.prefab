@@ -84,7 +84,6 @@ GameObject:
   - 4: {fileID: 489836}
   - 33: {fileID: 3318808}
   - 65: {fileID: 6581344}
-  - 23: {fileID: 2393528}
   m_Layer: 0
   m_Name: Head
   m_TagString: Player
@@ -559,36 +558,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-  m_SubsetIndices: 
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_PreserveUVs: 1
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_SelectedWireframeHidden: 0
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
---- !u!23 &2393528
-MeshRenderer:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 147914}
-  m_Enabled: 0
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 034227807eefb00408bac3f68c182e67, type: 2}
   m_SubsetIndices: 
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
@@ -1073,6 +1043,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hurtImageColor: {r: 0, g: 0, b: 0, a: 0}
+  Mats:
+  - {fileID: 2100000, guid: fe24478ea46fa5c4a8a4151a8a95654c, type: 2}
+  - {fileID: 2100000, guid: 8e13b5e655322aa4c9014b71d14405fd, type: 2}
   health: 4
   FPcam: {fileID: 450018}
   flashColour: {r: 1, g: 0, b: 0, a: 1}
@@ -1191,6 +1164,7 @@ MonoBehaviour:
     smooth: 0
     smoothTime: 5
     lockCursor: 1
+    m_cursorIsLocked: 1
   m_UseFovKick: 1
   m_FovKick:
     Camera: {fileID: 0}

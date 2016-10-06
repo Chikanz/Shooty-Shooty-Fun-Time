@@ -491,10 +491,10 @@ public class FirstPersonController : MonoBehaviour
 
         touchingDoubleJump = (hit.transform.tag == "DoubleJump");
 
-        if (hit.transform.tag == "Stuff" && gameObject.GetComponent<Initalize>().photonView.isMine)
-        {
-            gameObject.GetComponent<Initalize>().Die();
-        }
+        //if (hit.transform.tag == "Stuff" && gameObject.GetComponent<Initalize>().photonView.isMine)
+        //{
+        //    gameObject.GetComponent<Initalize>().Die();
+        //}
 
         if (body == null || body.isKinematic)
         {

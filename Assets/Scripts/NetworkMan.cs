@@ -655,7 +655,7 @@ public class NetworkMan : Photon.MonoBehaviour
         if (v < 0.1f)
         {
             numFX = 0;
-            FXString = "Just Normal";
+            FXString = "Just Normal\n";
         }
         else if (v < 0.5)
             numFX = 1;
@@ -664,7 +664,7 @@ public class NetworkMan : Photon.MonoBehaviour
         else
             numFX = 3;
 
-        if (Random.value > 0.25f)
+        if (Random.value > 0.3f)
         {
             gmSelect = Random.Range(0, GmCount);
             SetGM(gmSelect, true);
@@ -692,7 +692,7 @@ public class NetworkMan : Photon.MonoBehaviour
             flipFX(FXindex, true);
             FXString += FXText[FXindex] + " + ";
         }
-        pastIndexes.Clear();
+        //pastIndexes.Clear();
         FXString = FXString.TrimEnd(trimings);
     }
 

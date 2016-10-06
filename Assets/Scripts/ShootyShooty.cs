@@ -242,23 +242,18 @@ public class ShootyShooty : NetworkBehaviour
                         Bullet, Gunlight.transform.position,
                         Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
 
+                    var BS = bullet.GetComponent<bulletScript>();
+
                     //Link Bullet and impact
-                    if (hit.transform.tag != "Player" && hit.transform.gameObject.layer != 12 &&
-                        hit.transform.gameObject.layer != 11)
+                    if (hit.transform.tag != "Player" &&
+                        (hit.transform.gameObject.layer != 12 &&
+                        hit.transform.gameObject.layer != 11 || NM.explosions))
                     {
-                        var BS = bullet.GetComponent<bulletScript>();
                         BS.SetHitPos(hit.transform);
                         BS.id = BM.NewHit(hit, hit.transform.gameObject);
-                        //BS.hitPos = hit.transform;
                     }
-
-                    //ShootyBall
-                    if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
-                    {
-                        hit.transform.GetComponent<PhotonView>().RequestOwnership();
-                        hit.transform.GetComponent<Rigidbody>()
-                            .AddForceAtPosition(transform.forward * ShootyBallForce, hit.point);
-                    }
+                    else
+                        BS.impact = false;
 
                     // Gets a vector that points from the player's position to the target's.
                     //(from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
@@ -267,6 +262,14 @@ public class ShootyShooty : NetworkBehaviour
                     var direction = heading / distance; // This is now the normalized direction.
 
                     bullet.GetComponent<Rigidbody>().AddForce(direction * bulletSpeed);
+
+                    //ShootyBall
+                    if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
+                    {
+                        hit.transform.GetComponent<PhotonView>().RequestOwnership();
+                        hit.transform.GetComponent<Rigidbody>()
+                            .AddForceAtPosition(transform.forward * ShootyBallForce, hit.point);
+                    }
 
                     //Get shot
                     if (hit.transform.tag == "Player" && hit.collider.isTrigger &&

@@ -8,6 +8,8 @@ public class Initalize : Photon.MonoBehaviour
     private Image hurtImage2;
     public Color hurtImageColor;
 
+    public Material[] Mats;
+
     private Vector3 PlayerPos;
     private Quaternion PlayerRot;
 
@@ -99,6 +101,8 @@ public class Initalize : Photon.MonoBehaviour
         }
         else
         {
+            var mat = NM.playerNumber == 0 ? 1 : 0;
+            transform.FindChild("Body").GetComponent<MeshRenderer>().material = Mats[mat];
             StartCoroutine("UpdateData");
         }
     }
@@ -211,7 +215,8 @@ public class Initalize : Photon.MonoBehaviour
     public void Die()
     {
         DieInner();
-        GetComponent<Rigidbody>().AddForce(body.transform.forward * 700);
+        if (!NM.MDeath)
+            GetComponent<Rigidbody>().AddForce(body.transform.forward * 700);
     }
 
     private void DieInner()
@@ -221,7 +226,7 @@ public class Initalize : Photon.MonoBehaviour
 
         if (NM.MDeath)
         {
-            GetComponent<FirstPersonController>().SetExplosionMode(false);
+            //GetComponent<FirstPersonController>().SetExplosionMode(false);
             NM.MoveToSpawn();
             return;
         }

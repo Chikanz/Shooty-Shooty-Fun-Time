@@ -7,13 +7,19 @@ public class StuffGunObject : MonoBehaviour
     private int destroyed = 0;
     public int stuffGunMulti = 2;
     public float TTL = 0.5f; //Time till live
+
     private Rigidbody RB;
     public int SpazForce;
     public int SpazChance = 20;
+
     public AudioClip[] Clips;
     private AudioSource AS;
     private float playOnAwakeDelay;
     private bool playedOnAwake = false;
+
+    public int lifetime = 10;
+    private float timeAlive;
+    private bool ded;
 
     private void Start()
     {
@@ -23,10 +29,19 @@ public class StuffGunObject : MonoBehaviour
         NetworkMan.RestartEvent += Die;
         RB = GetComponent<Rigidbody>();
         playOnAwakeDelay = Random.Range(0, 0.1f);
+        Destroy(gameObject, lifetime + 2);
     }
 
     private void Update()
     {
+        timeAlive += Time.deltaTime;
+        if (timeAlive > lifetime && !ded)
+        {
+            GetComponent<BoxCollider>().enabled = false;
+            AS.enabled = false;
+            ded = true;
+        }
+
         AS.pitch = Time.timeScale;
 
         if (playOnAwakeDelay > 0)

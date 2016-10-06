@@ -44,7 +44,7 @@ public class Impact : MonoBehaviour
 
                 Rigidbody rb = hit.GetComponentInParent<Rigidbody>();
                 if (rb != null)
-                    rb.AddExplosionForce(power, explosionPos, radius, 3.0F);
+                    rb.AddExplosionForce(power, explosionPos, radius, 15.0F);
             }
             splodeySphere = transform.GetChild(0);
             splodeySphere.gameObject.SetActive(true);
