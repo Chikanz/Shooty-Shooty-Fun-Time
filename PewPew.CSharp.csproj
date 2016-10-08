@@ -147,7 +147,6 @@
     <Compile Include="Assets\PhotonChatApi\ChatUserStatus.cs" />
     <Compile Include="Assets\PhotonChatApi\IChatClientListener.cs" />
     <Compile Include="Assets\RadialSliderUI\Scripts\RadialSlider.cs" />
-    <Compile Include="Assets\Scripts\BouncePad.cs" />
     <Compile Include="Assets\Scripts\BulletManager.cs" />
     <Compile Include="Assets\Scripts\FPC\FirstPersonController.cs" />
     <Compile Include="Assets\Scripts\FPC\HeadBob.cs" />
@@ -165,7 +164,6 @@
     <Compile Include="Assets\Scripts\UIManager.cs" />
     <Compile Include="Assets\Scripts\bulletScript.cs" />
     <Compile Include="Assets\Scripts\killparticle.cs" />
-    <Compile Include="Assets\Scripts\locky.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Photon Unity Networking\changelog.txt" />

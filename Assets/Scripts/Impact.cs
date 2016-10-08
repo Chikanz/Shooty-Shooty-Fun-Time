@@ -56,7 +56,8 @@ public class Impact : MonoBehaviour
             GetComponent<ParticleSystemRenderer>().material.color = otherCol;
 
             GetComponent<ParticleSystem>().Play();
-            GetComponent<MeshRenderer>().enabled = true;
+            if (!NM.godBullets)
+                GetComponent<MeshRenderer>().enabled = true;
         }
     }
 }

@@ -62,4 +62,5 @@ MonoBehaviour:
   - P2SlowMoSet
   - Rockets
   - MakeActive
+  - PlayHurt
   DisableAutoOpenWizard: 1

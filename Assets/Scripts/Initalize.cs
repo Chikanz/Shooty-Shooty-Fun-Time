@@ -5,9 +5,6 @@ using UnityEngine.UI;
 
 public class Initalize : Photon.MonoBehaviour
 {
-    private Image hurtImage2;
-    public Color hurtImageColor;
-
     public Material[] Mats;
 
     private Vector3 PlayerPos;
@@ -30,6 +27,8 @@ public class Initalize : Photon.MonoBehaviour
     private ParticleSystem PS;
 
     private Transform body;
+
+    private UIManager UIMan;
 
     private bool running = false;
     private bool walking = false;
@@ -55,6 +54,8 @@ public class Initalize : Photon.MonoBehaviour
     private void Start()
     {
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+        UIMan = GameObject.Find("UI Manager").GetComponent<UIManager>();
+
         anim = GetComponentInChildren<Animator>();
         FPcam = transform.Find("FirstPersonCharacter");
         lh = GetComponentInChildren<LightHandler>();
@@ -69,7 +70,6 @@ public class Initalize : Photon.MonoBehaviour
 
         if (photonView.isMine)
         {
-            hurtImage2 = transform.Find("/UI Groups/Main UI/HurtImage").GetComponent<Image>();
             //gameObject.layer = 2;
 
             GetComponent<Rigidbody>().useGravity = true;
@@ -111,9 +111,6 @@ public class Initalize : Photon.MonoBehaviour
     {
         if (photonView.isMine)
         {
-            if (Input.GetKey(KeyCode.L))
-                Die();
-
             running = anim.GetBool("IsRunning");
             walking = anim.GetBool("IsWalking");
             camRot = FPcam.rotation;
@@ -170,9 +167,6 @@ public class Initalize : Photon.MonoBehaviour
     {
         health -= damage;
 
-        //if (photonView.isMine)
-        //  hurtImage2.color = hurtImageColor;
-
         if (health <= 0 && photonView.isMine)
         {
             if (NM.oneShot && NM.GMRace)
@@ -180,6 +174,12 @@ public class Initalize : Photon.MonoBehaviour
 
             Die(forcepos);
         }
+    }
+
+    [PunRPC]
+    public void PlayHurt()
+    {
+        UIMan.Owch();
     }
 
     [PunRPC]

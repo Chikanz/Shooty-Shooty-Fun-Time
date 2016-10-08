@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -44,6 +45,8 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public GameObject ShootyBall;
 
+    public Text ThingExplainer;
+    public GameObject godModeStuff;
     public List<GameObject> everything;
     //private List<string> DestroyedObjs = new List<string>();
 
@@ -115,25 +118,26 @@ public class NetworkMan : Photon.MonoBehaviour
             "God Bullets",
             "Mum's Spaghetti",
             "Blink",
-            "Stuff Gun",
+            "Pet cannon",
             "Slow Mo",
             "Shotgun",
             "Rockets"
         };
 
-    private readonly string[] GMText =
+    private string[] FXDesc =
     {
-        "Shooty Ball",
-        "Race",
-    };
+            "Low Gravity",
+            "Only accurate while jumping",
+            "Destroy everything",
+            "YOU ONLY GOT ONE SHOT",
+            "Press 'E' to tracer blink",
+            "It's raining cats and dogs out here!",
+            "Press 'Shift' to slow mo. Effects other players",
+            "Mo' bullets mo' money",
+            "Michael Bay splosions "
+        };
 
-    private readonly string[] GMRPCs =
-   {
-        "Football",
-        "Race",
-    };
-
-    private string[] FXRPCs =
+    private readonly string[] FXRPCs =
         {
             "LowGrav",
             "MakeJumpAcc",
@@ -145,6 +149,24 @@ public class NetworkMan : Photon.MonoBehaviour
             "Shotty",
             "Rockets"
         };
+
+    private readonly string[] GMText =
+    {
+        "Shooty Ball",
+        "Race",
+    };
+
+    private readonly string[] GMDesc =
+{
+        "Soccer with guns",
+        "Dying sends you back to a check point",
+    };
+
+    private readonly string[] GMRPCs =
+   {
+        "Football",
+        "Race",
+    };
 
     //FX Bools
     private const int GmCount = 2;
@@ -176,8 +198,14 @@ public class NetworkMan : Photon.MonoBehaviour
         PhotonNetwork.sendRate = 60;
         PhotonNetwork.sendRateOnSerialize = 60;
         pv = GetComponent<PhotonView>();
-        FXList = transform.Find("/UI Groups/Main UI/FX Text").GetComponent<Text>();
-        FXCountdown = transform.Find("/UI Groups/Main UI/Round Countdown").GetComponent<Text>();
+        FXList = transform.Find("/UI Manager/Main UI/FX Text").GetComponent<Text>();
+        FXCountdown = transform.Find("/UI Manager/Main UI/Round Countdown").GetComponent<Text>();
+
+        GameObject[] childrenCopy = transform.GetComponentsInChildren<GameObject>();
+        foreach (GameObject g in childrenCopy)
+        {
+            everything.Add(g);
+        }
     }
 
     private void Update()
@@ -420,8 +448,7 @@ public class NetworkMan : Photon.MonoBehaviour
         SS.inClip = b ? 1 : 10;
         SS.bulletDamage = b ? 4 : 1;
         SS.ShootyBallForce = b ? SBMaxForce : SBNormForce;
-        if (stuffGun)
-            SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
+        SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
     }
 
     [PunRPC]
@@ -579,7 +606,16 @@ public class NetworkMan : Photon.MonoBehaviour
     public void RestoreLevel()
     {
         foreach (GameObject obj in everything)
-            obj.SetActive(true);
+        {
+            try
+            {
+                obj.SetActive(true);
+            }
+            catch (Exception e)
+            {
+                Debug.Log(obj);
+            }
+        }
     }
 
     //Game mode RPCs
@@ -598,7 +634,7 @@ public class NetworkMan : Photon.MonoBehaviour
         if (b)
             ShootyBall = PhotonNetwork.Instantiate("Shooty Ball", SpawnPoints[4].position, Quaternion.identity, 0);
         else
-            PhotonNetwork.Destroy(ShootyBall.gameObject);
+            PhotonNetwork.Destroy(ShootyBall);
     }
 
     [PunRPC]
@@ -619,7 +655,7 @@ public class NetworkMan : Photon.MonoBehaviour
         Plants[0].SetActive(b);
         Plants[1].SetActive(b);
         FPC.blinkDistance = b ? 0.7f : 2;
-        //FPC.blinkDistance = 1.2f;
+        FPC.maxBlinks = b ? 1 : 3;
         SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
         MDeath = b;
         RaceFallBounds.SetActive(b);
@@ -649,6 +685,9 @@ public class NetworkMan : Photon.MonoBehaviour
     //THE DECIDER
     private void ChooseFX()
     {
+        ThingExplainer.text = "";
+        FXString = "";
+
         int numFX;
         float v = Random.value;
 
@@ -664,11 +703,16 @@ public class NetworkMan : Photon.MonoBehaviour
         else
             numFX = 3;
 
+        ThingExplainer.text += "<size=18>" + "Combat" + "</size> \n";
+        ThingExplainer.text += "Shoot your friends in the face!\n\n";
+
         if (Random.value > 0.3f)
         {
             gmSelect = Random.Range(0, GmCount);
             SetGM(gmSelect, true);
             FXString += GMText[gmSelect] + "\n";
+            ThingExplainer.text = "<size=18>" + GMText[gmSelect] + "</size> \n";
+            ThingExplainer.text += GMDesc[gmSelect] + "\n\n";
         }
 
         //Exclusions
@@ -682,6 +726,9 @@ public class NetworkMan : Photon.MonoBehaviour
             pastIndexes.Add(3); //Exclude OneShot
         }
 
+        //Disable rockets for now
+        pastIndexes.Add(8);
+
         while (pastIndexes.Count <= numFX)
         {
             int FXindex = Random.Range(0, FXText.Count());
@@ -691,6 +738,9 @@ public class NetworkMan : Photon.MonoBehaviour
             pastIndexes.Add(FXindex);
             flipFX(FXindex, true);
             FXString += FXText[FXindex] + " + ";
+
+            ThingExplainer.text += "<size=18>" + FXText[FXindex] + "</size> \n";
+            ThingExplainer.text += FXDesc[FXindex] + "\n";
         }
         //pastIndexes.Clear();
         FXString = FXString.TrimEnd(trimings);
@@ -767,6 +817,11 @@ public class NetworkMan : Photon.MonoBehaviour
     public void Getouttahere()
     {
         Application.Quit();
+    }
+
+    public void kys()
+    {
+        player.GetComponent<Initalize>().Die();
     }
 
     //Depricated functions

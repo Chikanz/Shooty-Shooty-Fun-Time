@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    public Image hurtImage;
     private NetworkMan NM;
     private GameObject Player;
     private FirstPersonController FPC;
@@ -21,7 +22,9 @@ public class UIManager : MonoBehaviour
     public Color blinkInactiveColor;
     public bool excOn = false;
 
-    public Canvas EscapeCanvas;
+    private bool owies;
+
+    public GameObject EscapeMenu;
 
     public Image[] ScoreImages;
 
@@ -37,13 +40,7 @@ public class UIManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            excOn = !excOn;
-            //Clean this up pls
-            EscapeCanvas.enabled = excOn;
-            NM.player.GetComponent<FirstPersonController>().m_MouseLook.SetCursorLock(!excOn);
-            NM.player.GetComponent<FirstPersonController>().enabled = !excOn;
-            NM.player.GetComponent<FirstPersonController>().m_MouseLook.m_cursorIsLocked = !excOn;
-            NM.player.GetComponentInChildren<ShootyShooty>().enabled = !excOn;
+            EscMenu();
         }
 
         UpdateScoreImages(NM.Score);
@@ -58,6 +55,11 @@ public class UIManager : MonoBehaviour
             BlinkCanvas.enabled = NM.blink;
             if (NM.blink)
                 Displayblinks();
+        }
+
+        if (owies)
+        {
+            hurtImage.color = new Color(hurtImage.color.r, hurtImage.color.g, hurtImage.color.b, hurtImage.color.a - Time.deltaTime * 2);
         }
     }
 
@@ -117,5 +119,22 @@ public class UIManager : MonoBehaviour
             FPC = Player.GetComponent<FirstPersonController>();
             SS = Player.GetComponentInChildren<ShootyShooty>();
         }
+    }
+
+    public void EscMenu()
+    {
+        excOn = !excOn;
+        //Clean this up pls
+        EscapeMenu.SetActive(excOn);
+        NM.player.GetComponent<FirstPersonController>().m_MouseLook.SetCursorLock(!excOn);
+        NM.player.GetComponent<FirstPersonController>().enabled = !excOn;
+        NM.player.GetComponent<FirstPersonController>().m_MouseLook.m_cursorIsLocked = !excOn;
+        NM.player.GetComponentInChildren<ShootyShooty>().enabled = !excOn;
+    }
+
+    public void Owch()
+    {
+        hurtImage.color = Color.red;
+        owies = true;
     }
 }

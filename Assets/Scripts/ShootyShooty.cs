@@ -115,7 +115,7 @@ public class ShootyShooty : NetworkBehaviour
         Gunlight = GetComponentInChildren<Light>();
         FPC = player.GetComponent<FirstPersonController>();
 
-        var CH = GameObject.Find("UI Groups/Main UI/CrossHair");
+        var CH = GameObject.Find("UI Manager/Main UI/CrossHair");
         CH.GetComponent<Canvas>().enabled = true;
 
         CH1 = CH.transform.GetChild(0).GetComponent<Image>();
@@ -245,15 +245,20 @@ public class ShootyShooty : NetworkBehaviour
                     var BS = bullet.GetComponent<bulletScript>();
 
                     //Link Bullet and impact
-                    if (hit.transform.tag != "Player" &&
-                        (hit.transform.gameObject.layer != 12 &&
-                        hit.transform.gameObject.layer != 11 || NM.explosions))
+                    BS.SetHitPos(hit.transform);
+                    BS.id = BM.NewHit(hit, hit.transform.gameObject);
+
+                    //Turn off render for player + shootyball
+                    if (hit.transform.tag == "Player" ||
+                        hit.transform.gameObject.layer == 12 ||
+                        hit.transform.gameObject.layer == 11)
                     {
-                        BS.SetHitPos(hit.transform);
-                        BS.id = BM.NewHit(hit, hit.transform.gameObject);
-                    }
-                    else
                         BS.impact = false;
+                    }
+
+                    //Global override
+                    if (NM.explosions)
+                        BS.impact = true;
 
                     // Gets a vector that points from the player's position to the target's.
                     //(from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
@@ -278,6 +283,8 @@ public class ShootyShooty : NetworkBehaviour
                         hit.transform.GetComponent<PhotonView>()
                             .RPC("GotShot", PhotonTargets.All,
                                 hit.collider.name == "Head" ? bulletDamage * 2 : bulletDamage, hit.transform.position);
+
+                        hit.transform.GetComponent<PhotonView>().RPC("PlayHurt", PhotonTargets.Others, null);
 
                         Hitmarker(hit.transform.name == "Head");
                         BloodParticles(hit);
@@ -405,7 +412,7 @@ public class ShootyShooty : NetworkBehaviour
             inac = true;
 
         //Override movement
-        if (NM.GMRace)
+        if (NM.GMRace || NM.lowGrav)
             inac = false;
 
         //Jump Case

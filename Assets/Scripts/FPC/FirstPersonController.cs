@@ -102,6 +102,7 @@ public class FirstPersonController : MonoBehaviour
     private Vector3 blinkFrom;
     public int blinks;
     private float blinkTimer;
+    public int maxBlinks = 3;
 
     public int blinkSpeed = 4;
     public float blinkDistance = 2;
@@ -312,7 +313,7 @@ public class FirstPersonController : MonoBehaviour
             transform.position = Vector3.Lerp(blinkFrom, blinkVel, blinkLerp);
             blinkLerp += Time.deltaTime * blinkSpeed;
         }
-        if (blinks < 3 && blinkTimer > 3)
+        if (blinks < maxBlinks && blinkTimer > 3)
         {
             blinks += 1;
             blinkTimer = 0;

@@ -57,7 +57,11 @@ public class bulletScript : MonoBehaviour
             return;
         }
 
-        BM.CreateNextHit(id);
+        if (impact)
+        {
+            BM.CreateNextHit(id);
+        }
+
         Destroy(gameObject);
         //Debug.Log("collided");
     }
