@@ -16,6 +16,7 @@ TagManager:
   - CheckPoint
   - FinishLine
   - Bullet
+  - NoFloor
   layers:
   - Default
   - TransparentFX

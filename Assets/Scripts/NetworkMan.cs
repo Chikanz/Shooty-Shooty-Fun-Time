@@ -80,7 +80,7 @@ public class NetworkMan : Photon.MonoBehaviour
     private int[] forwards = { 0, 10, 19 };
     private float randomConsecMod;
 
-    private Text FXList;
+    public Text FXList;
     private string FXString = "";
     private Text FXCountdown;
     private float newRoundTimer;
@@ -117,11 +117,11 @@ public class NetworkMan : Photon.MonoBehaviour
             "The Moon",
             "Jump Gun",
             "God Bullets",
-            "Mum's Spaghetti",
+            "Shotgun",
             "Blink",
             "Pet cannon",
             "Slow Mo",
-            "Shotgun",
+            "Mum's Spaghetti",
             "Rockets"
         };
 
@@ -130,11 +130,11 @@ public class NetworkMan : Photon.MonoBehaviour
             "Low Gravity",
             "Only accurate while jumping",
             "Destroy everything",
-            "YOU ONLY GOT ONE SHOT",
+            "Mo' bullets mo' money",
             "Press 'E' to tracer blink",
             "Deadly Doggos",
             "Press 'Shift' to slow mo. Effects other players",
-            "Mo' bullets mo' money",
+            "YOU ONLY GOT ONE SHOT",
             "Michael Bay splosions "
         };
 
@@ -143,11 +143,11 @@ public class NetworkMan : Photon.MonoBehaviour
             "LowGrav",
             "MakeJumpAcc",
             "GodBullets",
-            "MumsSpaghetti",
+            "Shotty",
             "Blink",
             "StuffGun",
             "SlowMo",
-            "Shotty",
+            "MumsSpaghetti",
             "Rockets"
         };
 
@@ -448,6 +448,7 @@ public class NetworkMan : Photon.MonoBehaviour
         SS.bulletDamage = b ? 4 : 1;
         SS.ShootyBallForce = b ? SBMaxForce : SBNormForce;
         SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
+        SS.shootCoolDown = b ? 0 : 0.15f;
     }
 
     [PunRPC]
@@ -479,6 +480,8 @@ public class NetworkMan : Photon.MonoBehaviour
         shotGun = b;
         SS.maxClip = b ? 2 : 10;
         SS.maxClip = SS.inClip;
+        SS.maxInnac = GMRace ? 0.05f : 0.13f; //If race allow long range shotty
+        SS.shootCoolDown = b ? 0.5f : 0.15f;
     }
 
     [PunRPC]
@@ -632,6 +635,7 @@ public class NetworkMan : Photon.MonoBehaviour
         MDeath = b;
         player.GetComponentInChildren<FirstPersonController>().blinkSpeed = b ? 2 : 4; //Half blink speed when true
         SS.StuffGunForce = b ? MaxStuffGunForce : 1000;
+        SS.shootCoolDown = b ? 0 : 0.15f;
 
         if (!PhotonNetwork.isMasterClient) return; //Master client only
 

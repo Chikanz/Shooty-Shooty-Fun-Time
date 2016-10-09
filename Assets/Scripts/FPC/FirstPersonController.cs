@@ -466,6 +466,11 @@ public class FirstPersonController : MonoBehaviour
         {
             NM.SetSpawn(c.transform);
         }
+
+        if (c.tag == "NoFloor")
+        {
+            NM.FXList.text = "Lol";
+        }
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -491,11 +496,6 @@ public class FirstPersonController : MonoBehaviour
         }
 
         touchingDoubleJump = (hit.transform.tag == "DoubleJump");
-
-        //if (hit.transform.tag == "Stuff" && gameObject.GetComponent<Initalize>().photonView.isMine)
-        //{
-        //    gameObject.GetComponent<Initalize>().Die();
-        //}
 
         if (body == null || body.isKinematic)
         {

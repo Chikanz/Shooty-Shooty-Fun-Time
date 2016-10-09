@@ -36,23 +36,20 @@ public class ShootyShooty : NetworkBehaviour
     public float inacDecayRate = 0.05f;
     public float spamInnac = 0.01f;
 
-    private GameObject[] impacts;
-    private int currentImpact = 0;
-    private int maxImpacts = 20;
     public bool reloading = false;
 
     public int maxCasings = 20;
     private List<GameObject> Casings = new List<GameObject>();
 
-    public int maxDecals = 20;
+    public int maxDecals = 3;
     private List<GameObject> impactList = new List<GameObject>();
     public Light Gunlight;
 
     public bool shooting = false;
     private float lightTimer;
 
-    private Vector3 accPos = new Vector3(-18, 0, 0);
-    private Vector3 inaccPos = new Vector3(-35, 0, 0);
+    private readonly Vector3 accPos = new Vector3(-18, 0, 0);
+    private readonly Vector3 inaccPos = new Vector3(-35, 0, 0);
 
     private Vector3 prevPos;
 
@@ -73,8 +70,7 @@ public class ShootyShooty : NetworkBehaviour
 
     public float shootCoolDown = 0.3f;
 
-    [SerializeField]
-    private float shootCoolDownTimer = 0;
+    public float shootCoolDownTimer = 0;
 
     private int damage = 1;
 
@@ -85,8 +81,7 @@ public class ShootyShooty : NetworkBehaviour
     public bool drunkinnac = false;
     public float drunkInnacChance = 0.6f;
 
-    private float PokeThrust;
-    public float pokeTMultiplier;
+    private bool canthrow = true;
     private bool inac;
     public bool shootingEnabled = true;
 
@@ -132,7 +127,7 @@ public class ShootyShooty : NetworkBehaviour
             Playerpv.RPC("ReloadRPC", PhotonTargets.All, null);
         }
 
-        if (Input.GetButtonDown("Fire1")
+        if (Input.GetKeyDown(KeyCode.Mouse0)
             && shootingEnabled
             && !reloading
             && inClip > 0
@@ -163,16 +158,11 @@ public class ShootyShooty : NetworkBehaviour
             }
         }
 
-        if (Input.GetKey(KeyCode.Mouse1))
-        {
-            PokeThrust += Time.deltaTime * pokeTMultiplier;
-        }
-
-        if (Input.GetKeyUp(KeyCode.Mouse1) && PokeThrust != 0)
+        if (Input.GetKey(KeyCode.Mouse1) && canthrow)
         {
             var pb = Instantiate(pokeBall, transform.position, Quaternion.identity) as GameObject;
             pb.GetComponent<Rigidbody>().AddForce(transform.forward * 1000);
-            PokeThrust = 0;
+            canthrow = false;
         }
 
         //SlowMo Stuff
@@ -359,7 +349,7 @@ public class ShootyShooty : NetworkBehaviour
         blood.transform.parent = hit.transform.gameObject.transform;
         blood.GetComponent<ParticleSystem>().Play();
 
-        if (impactList.Count > maxImpacts)
+        if (impactList.Count > 3)
         {
             Destroy(impactList[0]);
             impactList.RemoveAt(0);

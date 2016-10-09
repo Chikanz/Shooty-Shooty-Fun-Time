@@ -282,7 +282,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 121722}
   m_LocalRotation: {x: 0, y: -1, z: -0, w: -0.00000016292068}
-  m_LocalPosition: {x: 0.86, y: 23.88, z: 53.14}
+  m_LocalPosition: {x: 0.86, y: 23.88, z: 79.81}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
   m_Children:
@@ -1042,11 +1042,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f28d98db052df5419f5101f7d1ed82d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hurtImageColor: {r: 0, g: 0, b: 0, a: 0}
   Mats:
   - {fileID: 2100000, guid: fe24478ea46fa5c4a8a4151a8a95654c, type: 2}
   - {fileID: 2100000, guid: 8e13b5e655322aa4c9014b71d14405fd, type: 2}
   health: 4
+  maxHealth: 4
   FPcam: {fileID: 450018}
   flashColour: {r: 1, g: 0, b: 0, a: 1}
   died: 0
@@ -1123,12 +1123,11 @@ MonoBehaviour:
   shooting: 0
   player: {fileID: 121722}
   outtaBullets: 0
-  shootCoolDown: 0
+  shootCoolDown: 0.15
   shootCoolDownTimer: 0
   lh: {fileID: 11496502}
   drunkinnac: 0
   drunkInnacChance: 0.4
-  pokeTMultiplier: 1000
   shootingEnabled: 1
   bulletDamage: 1
   bulletSpeed: 10000
@@ -1243,6 +1242,7 @@ MonoBehaviour:
   friction: 0.5
   desiredMove: {x: 0, y: 0, z: 0}
   blinks: 0
+  maxBlinks: 3
   blinkSpeed: 4
   blinkDistance: 2
   CamKick: 0
