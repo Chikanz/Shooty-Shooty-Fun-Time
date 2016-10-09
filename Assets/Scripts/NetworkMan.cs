@@ -28,6 +28,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public GameObject RaceFallBounds;
 
     public Slider sensSlider;
+    public Slider fovSlider;
 
     public GameObject player;
 
@@ -111,7 +112,7 @@ public class NetworkMan : Photon.MonoBehaviour
     private readonly float slowMoMulti = 0.4f;
 
     //FX
-    private readonly string[] FXText =
+    private string[] FXText =
         {
             "The Moon",
             "Jump Gun",
@@ -131,7 +132,7 @@ public class NetworkMan : Photon.MonoBehaviour
             "Destroy everything",
             "YOU ONLY GOT ONE SHOT",
             "Press 'E' to tracer blink",
-            "It's raining cats and dogs out here!",
+            "Deadly Doggos",
             "Press 'Shift' to slow mo. Effects other players",
             "Mo' bullets mo' money",
             "Michael Bay splosions "
@@ -201,11 +202,8 @@ public class NetworkMan : Photon.MonoBehaviour
         FXList = transform.Find("/UI Manager/Main UI/FX Text").GetComponent<Text>();
         FXCountdown = transform.Find("/UI Manager/Main UI/Round Countdown").GetComponent<Text>();
 
-        GameObject[] childrenCopy = transform.GetComponentsInChildren<GameObject>();
-        foreach (GameObject g in childrenCopy)
-        {
-            everything.Add(g);
-        }
+        foreach (Transform child in godModeStuff.GetComponentsInChildren<Transform>())
+            everything.Add(child.gameObject);
     }
 
     private void Update()
@@ -359,6 +357,7 @@ public class NetworkMan : Photon.MonoBehaviour
         init = player.GetComponentInChildren<Initalize>();
         normalInnac = SS.maxInnac;
         normalInnacDecay = SS.spamInnac;
+        FXText[5] = playerNumber == 0 ? "Doggo Launcher" : "Kitty Cannon";
 
         if (RestartEvent != null)
             RestartEvent();
@@ -516,6 +515,17 @@ public class NetworkMan : Photon.MonoBehaviour
     [PunRPC]
     public void RestartRound()
     {
+        //if (ShootyBall.gameObject != null)
+        //    PhotonNetwork.Destroy(ShootyBall);
+
+        if (PhotonNetwork.isMasterClient)
+        {
+            ResetFX();
+            ChooseFX();
+            pv.RPC("FinishedCallingShots", PhotonTargets.Others, FXString, ThingExplainer.text);
+        }
+
+        roundEnded = false;
         init.SetKill(false);
         WinText.text = "";
         player.GetComponent<Initalize>().health = 4;
@@ -530,12 +540,6 @@ public class NetworkMan : Photon.MonoBehaviour
 
         newRoundTimer = 3;
 
-        if (PhotonNetwork.isMasterClient)
-        {
-            ResetFX();
-            ChooseFX();
-            pv.RPC("FinishedCallingShots", PhotonTargets.Others, FXString);
-        }
         FXList.text = FXString;
 
         if (RestartEvent != null)
@@ -652,6 +656,9 @@ public class NetworkMan : Photon.MonoBehaviour
             MoveToSpawn();
         }
 
+        player.GetComponent<Initalize>().maxHealth = b ? 2 : 4;
+        player.GetComponent<Initalize>().health = b ? 2 : 4;
+
         Plants[0].SetActive(b);
         Plants[1].SetActive(b);
         FPC.blinkDistance = b ? 0.7f : 2;
@@ -663,9 +670,10 @@ public class NetworkMan : Photon.MonoBehaviour
 
     //Other RPCs
     [PunRPC]
-    public void FinishedCallingShots(string f)
+    public void FinishedCallingShots(string f, string thing)
     {
         FXString = f;
+        ThingExplainer.text = thing;
         FXList.text = FXString;
     }
 
@@ -696,7 +704,7 @@ public class NetworkMan : Photon.MonoBehaviour
             numFX = 0;
             FXString = "Just Normal\n";
         }
-        else if (v < 0.5)
+        if (v < 0.5)
             numFX = 1;
         else if (v < 0.7)
             numFX = 2;
@@ -716,6 +724,7 @@ public class NetworkMan : Photon.MonoBehaviour
         }
 
         //Exclusions
+        int exclusions = 0;
         List<int> pastIndexes = new List<int>();
         if (gmSelect == 0)
             pastIndexes.Add(2); //Exclude godbullets
@@ -728,8 +737,9 @@ public class NetworkMan : Photon.MonoBehaviour
 
         //Disable rockets for now
         pastIndexes.Add(8);
+        exclusions = pastIndexes.Count;
 
-        while (pastIndexes.Count <= numFX)
+        while (pastIndexes.Count - exclusions <= numFX - 1)
         {
             int FXindex = Random.Range(0, FXText.Count());
             if (pastIndexes.Contains(FXindex))
@@ -822,6 +832,21 @@ public class NetworkMan : Photon.MonoBehaviour
     public void kys()
     {
         player.GetComponent<Initalize>().Die();
+    }
+
+    public int getPlayerHealth()
+    {
+        return player.GetComponent<Initalize>().health;
+    }
+
+    public void ToggleMdeath(bool b)
+    {
+        MDeath = b;
+    }
+
+    public void setFOV()
+    {
+        player.GetComponentInChildren<Camera>().fieldOfView = fovSlider.value;
     }
 
     //Depricated functions

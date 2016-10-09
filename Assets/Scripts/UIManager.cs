@@ -6,11 +6,6 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     public Image hurtImage;
-    private NetworkMan NM;
-    private GameObject Player;
-    private FirstPersonController FPC;
-    private ShootyShooty SS;
-
     public Image Rslider;
     public Canvas SlowmoCanvas;
 
@@ -20,13 +15,19 @@ public class UIManager : MonoBehaviour
     public Image[] blinkImages;
     public Color blinkActiveColor;
     public Color blinkInactiveColor;
+
+    public GameObject EscapeMenu;
+    public Image[] ScoreImages;
+
+    public Text healthText;
+
     public bool excOn = false;
 
     private bool owies;
-
-    public GameObject EscapeMenu;
-
-    public Image[] ScoreImages;
+    private NetworkMan NM;
+    private GameObject Player;
+    private FirstPersonController FPC;
+    private ShootyShooty SS;
 
     private bool canUpdate;
 
@@ -55,6 +56,8 @@ public class UIManager : MonoBehaviour
             BlinkCanvas.enabled = NM.blink;
             if (NM.blink)
                 Displayblinks();
+
+            healthText.text = NM.getPlayerHealth() > 0 ? NM.getPlayerHealth().ToString() : "0";
         }
 
         if (owies)

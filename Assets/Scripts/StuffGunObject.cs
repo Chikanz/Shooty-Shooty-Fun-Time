@@ -108,7 +108,9 @@ public class StuffGunObject : MonoBehaviour
         {
             if (c.gameObject.GetComponent<Initalize>().photonView.isMine)
             {
-                c.gameObject.GetComponent<Initalize>().Die();
+                var UI = GameObject.Find("UI Manager").GetComponent<UIManager>();
+                c.gameObject.GetComponent<PhotonView>().RPC("GotShot", PhotonTargets.All, 4, new Vector3(0, 0, 0));
+                UI.Owch();
             }
         }
 

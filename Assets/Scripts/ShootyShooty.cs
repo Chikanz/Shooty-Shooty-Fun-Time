@@ -329,9 +329,20 @@ public class ShootyShooty : NetworkBehaviour
 
             for (int i = 0; i < count; i++)
             {
-                var pet = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position, Random.rotation, 0);
+                GameObject pet;
+                if (!NM.shotGun)
+                {
+                    pet = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position,
+                        transform.parent.parent.localRotation, 0);
+                }
+                else
+                {
+                    pet = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position,
+                       Random.rotation, 0);
+                    pet.GetComponent<Rigidbody>().AddTorque(transform.up * 100);
+                }
+
                 pet.GetComponent<Rigidbody>().AddForce(spray * StuffGunForce);
-                pet.GetComponent<Rigidbody>().AddTorque(transform.up * 100);
                 BM.NewPet(pet);
             }
         }

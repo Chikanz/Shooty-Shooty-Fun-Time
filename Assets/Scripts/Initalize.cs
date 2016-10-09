@@ -11,6 +11,7 @@ public class Initalize : Photon.MonoBehaviour
     private Quaternion PlayerRot;
 
     public int health = 4;
+    public int maxHealth = 4;
 
     //private float endRoundTimer;
     private float smoothing = 15f;
@@ -70,7 +71,7 @@ public class Initalize : Photon.MonoBehaviour
 
         if (photonView.isMine)
         {
-            //gameObject.layer = 2;
+            transform.Find("Head").gameObject.layer = 2;
 
             GetComponent<Rigidbody>().useGravity = true;
             GetComponentInChildren<FirstPersonController>().enabled = true;
@@ -227,6 +228,7 @@ public class Initalize : Photon.MonoBehaviour
         if (NM.MDeath)
         {
             //GetComponent<FirstPersonController>().SetExplosionMode(false);
+            health = maxHealth;
             NM.MoveToSpawn();
             return;
         }
@@ -254,7 +256,8 @@ public class Initalize : Photon.MonoBehaviour
     {
         if (other.tag == "OuttaBounds" && !died && photonView.isMine)
         {
-            Die();
+            photonView.RPC("GotShot", PhotonTargets.All, 999, new Vector3(Random.value, Random.value, Random.value) * 1000);
+            UIMan.Owch();
             //if(NM.gmSelect != 1)
             //    NM.pv.RPC("SendChatMessage", PhotonTargets.All, PhotonNetwork.player.name + " fell off the map like an idiot.");
         }
