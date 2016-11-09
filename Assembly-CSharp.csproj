@@ -135,6 +135,7 @@
      <Compile Include="Assets\Scripts\StuffGunObject.cs" />
      <Compile Include="Assets\Scripts\UIManager.cs" />
      <Compile Include="Assets\Scripts\bulletScript.cs" />
+     <Compile Include="Assets\Scripts\gravItem.cs" />
      <Compile Include="Assets\Scripts\killparticle.cs" />
      <None Include="Assets\Standard Assets\Effects\ToonShading\Shaders\ToonBasic.shader" />
      <None Include="Assets\Standard Assets\Effects\AntiAliasing\FXAA\Resources\FXAA3.cginc" />
@@ -157,6 +158,7 @@
      <None Include="Assets\Standard Assets\Effects\AntiAliasing\SMAA\Resources\SMAA.cginc" />
      <None Include="Assets\Standard Assets\Effects\ToonShading\Shaders\ToonLitOutline.shader" />
      <None Include="Assets\Standard Assets\Effects\ToonShading\Shaders\ToonLit.shader" />
+     <None Include="Assets\Shader\AlphaVertexLitZ.shader" />
      <None Include="Assets\Standard Assets\Effects\Projectors\Shaders\ProjectorLight.shader" />
      <None Include="Assets\Standard Assets\Effects\TonemappingColorGrading\Resources\TonemappingColorGrading.shader" />
      <None Include="Assets\Photon Unity Networking\readme.txt" />
@@ -176,11 +178,11 @@
  <Reference Include="UnityEngine.Networking">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
  </Reference>
- <Reference Include="websocket-sharp">
- <HintPath>C:/Users/dook/Documents/pewpew/Assets/Plugins/WebSocket/websocket-sharp.dll</HintPath>
- </Reference>
  <Reference Include="Photon3Unity3D">
  <HintPath>C:/Users/dook/Documents/pewpew/Assets/Plugins/Photon3Unity3D.dll</HintPath>
+ </Reference>
+ <Reference Include="websocket-sharp">
+ <HintPath>C:/Users/dook/Documents/pewpew/Assets/Plugins/WebSocket/websocket-sharp.dll</HintPath>
  </Reference>
   </ItemGroup>
   <ItemGroup>
