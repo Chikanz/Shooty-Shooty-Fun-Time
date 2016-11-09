@@ -68,6 +68,14 @@ public class PhotonView : Photon.MonoBehaviour
 
     protected internal bool mixedModeIsReliable = false;
 
+
+	/// <summary>
+	/// Flag to check if ownership of this photonView was set during the lifecycle. Used for checking when joining late if event with mismatched owner and sender needs addressing.
+	/// </summary>
+	/// <value><c>true</c> if owner ship was transfered; otherwise, <c>false</c>.</value>
+	public bool OwnerShipWasTransfered;
+
+
     // NOTE: this is now an integer because unity won't serialize short (needed for instantiation). we SEND only a short though!
     // NOTE: prefabs have a prefixBackup of -1. this is replaced with any currentLevelPrefix that's used at runtime. instantiated GOs get their prefix set pre-instantiation (so those are not -1 anymore)
     public int prefix
@@ -133,7 +141,7 @@ public class PhotonView : Photon.MonoBehaviour
     public OwnershipOption ownershipTransfer = OwnershipOption.Fixed;
 
     public List<Component> ObservedComponents;
-    Dictionary<Component, MethodInfo> m_OnSerializeMethodInfos = new Dictionary<Component, MethodInfo>();
+    Dictionary<Component, MethodInfo> m_OnSerializeMethodInfos = new Dictionary<Component, MethodInfo>(3);
 
 #if UNITY_EDITOR
     // Suppressing compiler warning "this variable is never used". Only used in the CustomEditor, only in Editor
@@ -503,7 +511,12 @@ public class PhotonView : Photon.MonoBehaviour
 
     protected internal void ExecuteComponentOnSerialize(Component component, PhotonStream stream, PhotonMessageInfo info)
     {
-        if (component != null)
+        IPunObservable observable = component as IPunObservable;
+        if (observable != null)
+        {
+            observable.OnPhotonSerializeView(stream, info);
+        }
+        else if (component != null)
         {
             MethodInfo method = null;
             bool found = this.m_OnSerializeMethodInfos.TryGetValue(component, out method);

@@ -130,23 +130,31 @@ public enum DisconnectCause
 {
     /// <summary>Server actively disconnected this client.
     /// Possible cause: The server's user limit was hit and client was forced to disconnect (on connect).</summary>
-    DisconnectByServerUserLimit,
+    DisconnectByServerUserLimit = StatusCode.DisconnectByServerUserLimit,
+
     /// <summary>Connection could not be established.
     /// Possible cause: Local server not running.</summary>
-    ExceptionOnConnect,
+    ExceptionOnConnect = StatusCode.ExceptionOnConnect,
+
     /// <summary>Timeout disconnect by server (which decided an ACK was missing for too long).</summary>
-    DisconnectByServerTimeout,
+    DisconnectByServerTimeout = StatusCode.DisconnectByServer,
+
     /// <summary>Server actively disconnected this client.
     /// Possible cause: Server's send buffer full (too much data for client).</summary>
-    DisconnectByServerLogic,
+    DisconnectByServerLogic = StatusCode.DisconnectByServerLogic,
+
     /// <summary>Some exception caused the connection to close.</summary>
-    Exception,
-    /// <summary>The Photon Cloud rejected the sent AppId. Check your Dashboard and make sure the AppId you use is complete and correct.</summary>
-    InvalidAuthentication,
-    /// <summary>Authorization on the Photon Cloud failed because the concurrent users (CCU) limit of the app's subscription is reached.</summary>
-    MaxCcuReached,
-    /// <summary>Authorization on the Photon Cloud failed because the app's subscription does not allow to use a particular region's server.</summary>
-    InvalidRegion,
+    Exception = StatusCode.Exception,
+
+    /// <summary>(32767) The Photon Cloud rejected the sent AppId. Check your Dashboard and make sure the AppId you use is complete and correct.</summary>
+    InvalidAuthentication = ErrorCode.InvalidAuthentication,
+
+    /// <summary>(32757) Authorization on the Photon Cloud failed because the concurrent users (CCU) limit of the app's subscription is reached.</summary>
+    MaxCcuReached = ErrorCode.MaxCcuReached,
+
+    /// <summary>(32756) Authorization on the Photon Cloud failed because the app's subscription does not allow to use a particular region's server.</summary>
+    InvalidRegion = ErrorCode.InvalidRegion,
+
     /// <summary>The security settings for client or server don't allow a connection (see remarks).</summary>
     /// <remarks>
     /// A common cause for this is that browser clients read a "crossdomain" file from the server.
@@ -155,14 +163,17 @@ public enum DisconnectCause
     /// If it fails, read:
     /// http://doc.exitgames.com/photon-server/PolicyApp
     /// </remarks>
-    SecurityExceptionOnConnect,
+    SecurityExceptionOnConnect = StatusCode.SecurityExceptionOnConnect,
+
     /// <summary>Timeout disconnect by client (which decided an ACK was missing for too long).</summary>
-    DisconnectByClientTimeout,
+    DisconnectByClientTimeout = StatusCode.TimeoutDisconnect,
+
     /// <summary>Exception in the receive-loop.
     /// Possible cause: Socket failure.</summary>
-    InternalReceiveException,
-    /// <summary>The Authentication ticket expired. Handle this by connecting again (which includes an authenticate to get a fresh ticket).</summary>
-    AuthenticationTicketExpired,
+    InternalReceiveException = StatusCode.ExceptionOnReceive,
+
+    /// <summary>(32753) The Authentication ticket expired. Handle this by connecting again (which includes an authenticate to get a fresh ticket).</summary>
+    AuthenticationTicketExpired = 32753,
 }
 
 /// <summary>Available server (types) for internally used field: server.</summary>
@@ -185,9 +196,6 @@ public enum ServerConnection
 /// </summary>
 internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
 {
-	/// <summary>Internally used cache for the server's token. Identifies a user/session and can be used to rejoin.</summary>
-    private string tokenCache;
-
     /// <summary>Combination of GameVersion+"_"+PunVersion. Separates players per app by version.</summary>
     protected internal string AppVersion
     {
@@ -203,6 +211,29 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
     /// </summary>
     public AuthenticationValues AuthValues { get; set; }
 
+	/// <summary>Internally used cache for the server's token. Identifies a user/session and can be used to rejoin.</summary>
+    private string tokenCache;
+
+
+    /// <summary>Enables the new Authentication workflow</summary>
+    public AuthModeOption AuthMode = AuthModeOption.Auth;
+
+    /// <summary>Defines how the communication gets encrypted.</summary>
+    public EncryptionMode EncryptionMode = EncryptionMode.PayloadEncryption;
+
+
+    ///<summary>Simplifies getting the token for connect/init requests, if this feature is enabled.</summary>
+    private string TokenForInit
+    {
+        get
+        {
+            if (this.AuthMode == AuthModeOption.Auth)
+            {
+                return null;
+            }
+            return (this.AuthValues != null) ? this.AuthValues.Token : null;
+        }
+    }
 
     /// <summary>True if this client uses a NameServer to get the Master Server address.</summary>
     public bool IsUsingNameServer { get; protected internal set; }
@@ -388,19 +419,20 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
 
     private HashSet<int> blockSendingGroups = new HashSet<int>();
 
-    internal protected Dictionary<int, PhotonView> photonViewList = new Dictionary<int, PhotonView>(); //TODO: make private again
+    protected internal Dictionary<int, PhotonView> photonViewList = new Dictionary<int, PhotonView>(); //TODO: make private again
 
-    private readonly PhotonStream pStream = new PhotonStream(true, null);                                            // only used in OnSerializeWrite()
+    private readonly PhotonStream readStream = new PhotonStream(false, null);    // only used in OnSerializeRead()
+    private readonly PhotonStream pStream = new PhotonStream(true, null);        // only used in OnSerializeWrite()
     private readonly Dictionary<int, Hashtable> dataPerGroupReliable = new Dictionary<int, Hashtable>();    // only used in RunViewUpdate()
     private readonly Dictionary<int, Hashtable> dataPerGroupUnreliable = new Dictionary<int, Hashtable>();  // only used in RunViewUpdate()
 
-    internal protected short currentLevelPrefix = 0;
+    protected internal short currentLevelPrefix = 0;
 
     /// <summary>Internally used to flag if the message queue was disabled by a "scene sync" situation (to re-enable it).</summary>
-    internal protected bool loadingLevelAndPausedNetwork = false;
+    protected internal bool loadingLevelAndPausedNetwork = false;
 
     /// <summary>For automatic scene syncing, the loaded scene is put into a room property. This is the name of said prop.</summary>
-    internal protected const string CurrentSceneProperty = "curScn";
+    protected internal const string CurrentSceneProperty = "curScn";
 
     public static bool UsePrefabCache = true;
 
@@ -412,57 +444,15 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
 
     private readonly Dictionary<string, int> rpcShortcuts;  // lookup "table" for the index (shortcut) of an RPC name
 
+    /// <summary>Caches PhotonNetworkingMessage.OnPhotonInstantiate.ToString(), because DoInstantiate calls it often (and ToString() on the enum is astonishingly expensive).</summary>
+    private static readonly string OnPhotonInstantiateString = PhotonNetworkingMessage.OnPhotonInstantiate.ToString();
+
 
     // TODO: CAS must be implemented for OfflineMode
 
     public NetworkingPeer(string playername, ConnectionProtocol connectionProtocol) : base(connectionProtocol)
     {
         this.Listener = this;
-
-        #if !UNITY_EDITOR && (UNITY_WINRT)
-        // this automatically uses a separate assembly-file with Win8-style Socket usage (not possible in Editor)
-        Debug.LogWarning("Using PingWindowsStore");
-        PhotonHandler.PingImplementation = typeof(PingWindowsStore);    // but for ping, we have to set the implementation explicitly to Win 8 Store/Phone
-        #endif
-
-        #pragma warning disable 0162    // the library variant defines if we should use PUN's SocketUdp variant (at all)
-        if (PhotonPeer.NoSocket)
-        {
-            #if !UNITY_EDITOR && (UNITY_PS3 || UNITY_ANDROID)
-            Debug.Log("Using class SocketUdpNativeDynamic");
-            this.SocketImplementation = typeof(SocketUdpNativeDynamic);
-            PhotonHandler.PingImplementation = typeof(PingNativeDynamic);
-            #elif !UNITY_EDITOR && UNITY_IPHONE
-            Debug.Log("Using class SocketUdpNativeStatic");
-            this.SocketImplementation = typeof(SocketUdpNativeStatic);
-            PhotonHandler.PingImplementation = typeof(PingNativeStatic);
-            #elif !UNITY_EDITOR && (UNITY_WINRT)
-            // this automatically uses a separate assembly-file with Win8-style Socket usage (not possible in Editor)
-            #else
-            this.SocketImplementation = typeof(SocketUdp);
-            PhotonHandler.PingImplementation = typeof(PingMonoEditor);
-            #endif
-
-            if (this.SocketImplementation == null)
-            {
-                Debug.Log("No socket implementation set for 'NoSocket' assembly. Please contact Exit Games.");
-            }
-        }
-        #pragma warning restore 0162
-
-#if UNITY_WEBGL
-		if (connectionProtocol == ConnectionProtocol.WebSocket || connectionProtocol == ConnectionProtocol.WebSocketSecure)
-        {
-	        Debug.Log("Using SocketWebTcp");
-	        this.SocketImplementation = typeof(SocketWebTcp);
-		}
-#endif
-
-        if (PhotonHandler.PingImplementation == null)
-        {
-            PhotonHandler.PingImplementation = typeof(PingMono);
-        }
-
         this.LimitOfUnreliableCommands = 40;
 
         this.lobby = TypedLobby.Default;
@@ -494,7 +484,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         }
         #endif
 
-        ConnectionProtocol currentProtocol = this.UsedProtocol;
+        ConnectionProtocol currentProtocol = this.TransportProtocol;
         int protocolPort = 0;
         ProtocolToNameServerPort.TryGetValue(currentProtocol, out protocolPort);
 
@@ -508,10 +498,12 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
             protocolPrefix = "wss://";
         }
 
-        return string.Format("{0}{1}:{2}", protocolPrefix, NameServerHost, protocolPort);
+        string result = string.Format("{0}{1}:{2}", protocolPrefix, NameServerHost, protocolPort);
+        //Debug.Log("NameServer: " + result);
+        return result;
     }
 
-    #region Operations and Commands
+#region Operations and Connection Methods
 
 
     public override bool Connect(string serverAddress, string applicationName)
@@ -572,8 +564,11 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
             return false;
         }
 
+        this.SetupProtocol(type);
+
         // connect might fail, if the DNS name can't be resolved or if no network connection is available
-        bool connecting = base.Connect(serverAddress, "");
+        bool connecting = base.Connect(serverAddress, "", this.TokenForInit);
+
         if (connecting)
         {
             switch (type)
@@ -615,8 +610,8 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
             return true;
         }
 
-        string address = this.NameServerAddress;
-        if (!base.Connect(address, "ns"))
+        this.SetupProtocol(ServerConnection.NameServer);
+        if (!base.Connect(this.NameServerAddress, "ns", this.TokenForInit))
         {
             return false;
         }
@@ -642,18 +637,120 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
 
         if (this.State == ClientState.ConnectedToNameServer)
         {
-            AuthenticationValues auth = this.AuthValues ?? new AuthenticationValues() { UserId = this.PlayerName };
-            return this.OpAuthenticate(this.AppId, this.AppVersion, auth, region.ToString(), requestLobbyStatistics);
+            return this.CallAuthenticate();
         }
 
-        string address = this.NameServerAddress;
-        if (!base.Connect(address, "ns"))
+        this.SetupProtocol(ServerConnection.NameServer);
+        if (!base.Connect(this.NameServerAddress, "ns", this.TokenForInit))
         {
             return false;
         }
 
         this.State = ClientState.ConnectingToNameServer;
         return true;
+    }
+
+    protected internal void SetupProtocol(ServerConnection serverType)
+    {
+        ConnectionProtocol protocolOverride = this.TransportProtocol;
+
+        if (this.AuthMode == AuthModeOption.AuthOnceWss)
+        {
+            if (serverType != ServerConnection.NameServer)
+            {
+                if (PhotonNetwork.logLevel >= PhotonLogLevel.ErrorsOnly)
+                {
+                    Debug.LogWarning("Using PhotonServerSettings.Protocol when leaving the NameServer (AuthMode is AuthOnceWss): " + PhotonNetwork.PhotonServerSettings.Protocol);
+                }
+                protocolOverride = PhotonNetwork.PhotonServerSettings.Protocol;
+            }
+            else
+            {
+                if (PhotonNetwork.logLevel >= PhotonLogLevel.ErrorsOnly)
+                {
+                    Debug.LogWarning("Using WebSocket to connect NameServer (AuthMode is AuthOnceWss).");
+                }
+                protocolOverride = ConnectionProtocol.WebSocketSecure;
+            }
+        }
+
+        // to support WebGL export in Unity, we find and assign the SocketWebTcp class (if it's in the project).
+        // alternatively class SocketWebTcp might be in the Photon3Unity3D.dll
+        Type socketTcp = Type.GetType("ExitGames.Client.Photon.SocketWebTcp, Assembly-CSharp", false);
+        if (socketTcp == null)
+        {
+            socketTcp = Type.GetType("ExitGames.Client.Photon.SocketWebTcp, Assembly-CSharp-firstpass", false);
+        }
+        if (socketTcp != null)
+        {
+            this.SocketImplementationConfig[ConnectionProtocol.WebSocket] = socketTcp;
+            this.SocketImplementationConfig[ConnectionProtocol.WebSocketSecure] = socketTcp;
+        }
+
+
+        #if UNITY_WEBGL
+        if (this.TransportProtocol != ConnectionProtocol.WebSocket && this.TransportProtocol != ConnectionProtocol.WebSocketSecure)
+        {
+			Debug.Log("WebGL only supports WebSocket protocol. Overriding PhotonServerSettings.");
+	        protocolOverride = ConnectionProtocol.WebSocketSecure;
+		}
+        #endif
+
+
+        #if !UNITY_EDITOR && (UNITY_WINRT)
+        // this automatically uses a separate assembly-file with Win8-style Socket usage (not possible in Editor)
+        Debug.LogWarning("Using PingWindowsStore");
+        PhotonHandler.PingImplementation = typeof(PingWindowsStore);    // but for ping, we have to set the implementation explicitly to Win 8 Store/Phone
+        #endif
+
+
+        #pragma warning disable 0162    // the library variant defines if we should use PUN's SocketUdp variant (at all)
+        if (PhotonPeer.NoSocket)
+        {
+            if (this.TransportProtocol != ConnectionProtocol.Udp)
+            {
+                Debug.Log("This Photon3Unity3d.dll only allows UDP. TransportProtocol was: " + this.TransportProtocol + ". SocketImplementation: " + this.SocketImplementation);
+            }
+            protocolOverride = ConnectionProtocol.Udp;
+
+            #if !UNITY_EDITOR && (UNITY_PS3 || UNITY_ANDROID)
+            this.SocketImplementationConfig[ConnectionProtocol.Udp] = typeof(SocketUdpNativeDynamic);
+            PhotonHandler.PingImplementation = typeof(PingNativeDynamic);
+            #elif !UNITY_EDITOR && UNITY_IPHONE
+            this.SocketImplementationConfig[ConnectionProtocol.Udp] = typeof(SocketUdpNativeStatic);
+            PhotonHandler.PingImplementation = typeof(PingNativeStatic);
+            #elif !UNITY_EDITOR && UNITY_WINRT
+            // this automatically uses a separate assembly-file with Win8-style Socket usage (not possible in Editor)
+            #else
+            this.SocketImplementationConfig[ConnectionProtocol.Udp] = typeof(SocketUdp);
+            PhotonHandler.PingImplementation = typeof(PingMonoEditor);
+            #endif
+
+            if (this.SocketImplementationConfig[ConnectionProtocol.Udp] == null)
+            {
+                Debug.Log("No socket implementation set for 'NoSocket' assembly. Please check your settings.");
+            }
+        }
+        #pragma warning restore 0162
+
+        if (PhotonHandler.PingImplementation == null)
+        {
+            PhotonHandler.PingImplementation = typeof(PingMono);
+        }
+
+
+        if (this.TransportProtocol == protocolOverride)
+        {
+            return;
+        }
+
+
+        if (PhotonNetwork.logLevel >= PhotonLogLevel.ErrorsOnly)
+        {
+            Debug.LogWarning("Protocol switch from: " + this.TransportProtocol + " to: " + protocolOverride + ".");
+        }
+
+        this.TransportProtocol = protocolOverride;
     }
 
     /// <summary>
@@ -676,6 +773,21 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         //this.LeftRoomCleanup();
         //this.LeftLobbyCleanup();
     }
+
+    private bool CallAuthenticate()
+    {
+        // once encryption is availble, the client should send one (secure) authenticate. it includes the AppId (which identifies your app on the Photon Cloud)
+        AuthenticationValues auth = this.AuthValues ?? new AuthenticationValues() { UserId = this.PlayerName };
+        if (this.AuthMode == AuthModeOption.Auth)
+        {
+            return this.OpAuthenticate(this.AppId, this.AppVersion, auth, this.CloudRegion.ToString(), this.requestLobbyStatistics);
+        }
+        else
+        {
+            return this.OpAuthenticateOnce(this.AppId, this.AppVersion, auth, this.CloudRegion.ToString(), this.EncryptionMode, PhotonNetwork.PhotonServerSettings.Protocol);
+        }
+    }
+
 
 
     /// <summary>
@@ -1168,29 +1280,29 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         {
             // player becomes inactive (but might return / is not gone for good)
             player.isInactive = (bool)evLeave.Parameters[ParameterCode.IsInactive];
-            if (player.isInactive)
+			if (player.isInactive && _isAlreadyInactive)
             {
                 Debug.LogWarning("HandleEventLeave for player ID: " + actorID + " isInactive: " + player.isInactive + ". Stopping handling if inactive.");
                 return;
             }
         }
 
-        // having a new master before calling destroy for the leaving player is important!
-        // so we elect a new masterclient and ignore the leaving player (who is still in playerlists).
-        // note: there is/was a server-side-error which sent 0 as new master instead of skipping the key/value. below is a check for 0 due to that
-        if (evLeave.Parameters.ContainsKey(ParameterCode.MasterClientId))
-        {
-            int newMaster = (int) evLeave[ParameterCode.MasterClientId];
-            if (newMaster != 0)
-            {
-                this.mMasterClientId = (int)evLeave[ParameterCode.MasterClientId];
-                this.UpdateMasterClient();
-            }
-        }
-        else if (!this.CurrentRoom.serverSideMasterClient)
-        {
-            this.CheckMasterClient(actorID);
-        }
+		// having a new master before calling destroy for the leaving player is important!
+		// so we elect a new masterclient and ignore the leaving player (who is still in playerlists).
+		// note: there is/was a server-side-error which sent 0 as new master instead of skipping the key/value. below is a check for 0 due to that
+		if (evLeave.Parameters.ContainsKey(ParameterCode.MasterClientId))
+		{
+			int newMaster = (int) evLeave[ParameterCode.MasterClientId];
+			if (newMaster != 0)
+			{
+				this.mMasterClientId = (int)evLeave[ParameterCode.MasterClientId];
+				this.UpdateMasterClient();
+			}
+		}
+		else if (!this.CurrentRoom.serverSideMasterClient)
+		{
+			this.CheckMasterClient(actorID);
+		}
 
 
 		// we let the player up if inactive but if we were already inactive, then we have to actually remove the player properly.
@@ -1437,6 +1549,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         switch (operationResponse.OperationCode)
         {
             case OperationCode.Authenticate:
+            case OperationCode.AuthenticateOnce:
             {
                 // ClientState oldState = this.State;
 
@@ -1517,6 +1630,11 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                                 this.DebugReturn(DebugLevel.INFO, string.Format("Received your NickName from server. Updating local value to: {0}", this.playername));
                             }
                         }
+
+                        if (operationResponse.Parameters.ContainsKey(ParameterCode.EncryptionData))
+                        {
+                            this.SetupEncryption((Dictionary<byte, object>)operationResponse.Parameters[ParameterCode.EncryptionData]);
+                        }
                     }
 
                     if (this.Server == ServerConnection.NameServer)
@@ -1527,6 +1645,10 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                     }
                     else if (this.Server == ServerConnection.MasterServer)
                     {
+                        if (this.AuthMode != AuthModeOption.Auth)
+                        {
+                            this.OpSettings(this.requestLobbyStatistics);
+                        }
                         if (PhotonNetwork.autoJoinLobby)
                         {
                             this.State = ClientState.Authenticated;
@@ -1795,7 +1917,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
     public void OnStatusChanged(StatusCode statusCode)
     {
         if (PhotonNetwork.logLevel >= PhotonLogLevel.Informational)
-            Debug.Log(string.Format("OnStatusChanged: {0}", statusCode.ToString()));
+            Debug.Log(string.Format("OnStatusChanged: {0} current State: {1}", statusCode.ToString(), this.State));
 
         switch (statusCode)
         {
@@ -1836,24 +1958,22 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                     }
                 }
 
-                if (!this.IsProtocolSecure)
+
+                if (this.TransportProtocol != ConnectionProtocol.WebSocketSecure)
                 {
-                    this.EstablishEncryption();
+                    if (this.Server == ServerConnection.NameServer || this.AuthMode == AuthModeOption.Auth)
+                    {
+                        this.EstablishEncryption();
+                    }
                 }
                 else
                 {
-                    Debug.Log("Skipping EstablishEncryption. Protocol is secure.");
-                }
-
-                if (this.IsAuthorizeSecretAvailable || this.IsProtocolSecure)
-                {
-                    // if we have a token we don't have to wait for encryption (it is encrypted anyways, so encryption is just optional later on)
-                    AuthenticationValues auth = this.AuthValues ?? new AuthenticationValues() { UserId = this.PlayerName };
-                    this.didAuthenticate = this.OpAuthenticate(this.AppId, this.AppVersion, auth, this.CloudRegion.ToString(), this.requestLobbyStatistics);
-                    if (this.didAuthenticate)
+                    if (DebugOut == DebugLevel.INFO)
                     {
-                        this.State = ClientState.Authenticating;
+                        Debug.Log("Skipping EstablishEncryption. Protocol is secure.");
                     }
+
+                    goto case StatusCode.EncryptionEstablished;
                 }
                 break;
 
@@ -1870,12 +1990,18 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                     }
                 }
 
+                if (this.Server != ServerConnection.NameServer && (this.AuthMode == AuthModeOption.AuthOnce || this.AuthMode == AuthModeOption.AuthOnceWss))
+                {
+                    // AuthMode "Once" means we only authenticate on the NameServer
+                    break;
+                }
+
+
                 // we might need to authenticate automatically now, so the client can do anything at all
                 if (!this.didAuthenticate && (!this.IsUsingNameServer || this.CloudRegion !=  CloudRegionCode.none))
                 {
-                    // once encryption is availble, the client should send one (secure) authenticate. it includes the AppId (which identifies your app on the Photon Cloud)
-                    AuthenticationValues auth = this.AuthValues ?? new AuthenticationValues() { UserId = this.PlayerName };
-                    this.didAuthenticate = this.OpAuthenticate(this.AppId, this.AppVersion, auth, this.CloudRegion.ToString(), this.requestLobbyStatistics);
+                    this.didAuthenticate = this.CallAuthenticate();
+
                     if (this.didAuthenticate)
                     {
                         this.State = ClientState.Authenticating;
@@ -1904,6 +2030,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                 }
                 else if (this.State == ClientState.DisconnectingFromGameserver || this.State == ClientState.DisconnectingFromNameServer)
                 {
+                    this.SetupProtocol(ServerConnection.MasterServer);
                     if (this.Connect(this.MasterServerAddress, ServerConnection.MasterServer))
                     {
                         this.State = ClientState.ConnectingToMasterserver;
@@ -1979,6 +2106,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                     this.AuthValues.Token = null;  // invalidate any custom auth secrets
                 }
 
+				/* JF: we need this when reconnecting and joining.
                 if (this.ServerAddress.Equals(this.GameServerAddress))
                 {
                     this.GameServerAddress = null;
@@ -1987,6 +2115,8 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                 {
                     this.ServerAddress = null;
                 }
+                */
+
                 this.Disconnect();
                 break;
 
@@ -2081,7 +2211,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                 int[] requestValues = (int[]) photonEvent.Parameters[ParameterCode.CustomEventContent];
                 int requestedViewId = requestValues[0];
                 int currentOwner = requestValues[1];
-                Debug.Log("Ev OwnershipRequest: " + photonEvent.Parameters.ToStringFull() + " ViewID: " + requestedViewId + " from: " + currentOwner + " Time: " + Environment.TickCount%1000);
+
 
                 PhotonView requestedView = PhotonView.Find(requestedViewId);
                 if (requestedView == null)
@@ -2090,7 +2220,8 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                     break;
                 }
 
-                Debug.Log("Ev OwnershipRequest PhotonView.ownershipTransfer: " + requestedView.ownershipTransfer + " .ownerId: " + requestedView.ownerId + " isOwnerActive: " + requestedView.isOwnerActive + ". This client's player: " + PhotonNetwork.player.ToStringFull());
+                if (PhotonNetwork.logLevel == PhotonLogLevel.Informational)
+                    Debug.Log("Ev OwnershipRequest " + requestedView.ownershipTransfer + ". ActorNr: " + actorNr + " takes from: " + currentOwner + ". Current owner: " + requestedView.ownerId + " isOwnerActive: " + requestedView.isOwnerActive + ". MasterClient: " + this.mMasterClientId + ". This client's player: " + PhotonNetwork.player.ToStringFull());
 
                 switch (requestedView.ownershipTransfer)
                 {
@@ -2098,10 +2229,15 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                         Debug.LogWarning("Ownership mode == fixed. Ignoring request.");
                         break;
                     case OwnershipOption.Takeover:
-                        if (currentOwner == requestedView.ownerId)
+                        if (currentOwner == requestedView.ownerId || (currentOwner == 0 && requestedView.ownerId == this.mMasterClientId))
                         {
                             // a takeover is successful automatically, if taken from current owner
+							requestedView.OwnerShipWasTransfered = true;
                             requestedView.ownerId = actorNr;
+                            if (PhotonNetwork.logLevel == PhotonLogLevel.Informational)
+                            {
+                                Debug.LogWarning(requestedView + " ownership transfered to: "+ actorNr);
+                            }
                         }
                         break;
                     case OwnershipOption.Request:
@@ -2130,7 +2266,9 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
                     PhotonView pv = PhotonView.Find(requestedViewId);
                     if (pv != null)
                     {
+						pv.OwnerShipWasTransfered = true;
                         pv.ownerId = newOwnerId;
+
                     }
 
                     break;
@@ -2374,7 +2512,52 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         //this.externalListener.OnEvent(photonEvent);
     }
 
+    public void OnMessage(object messages)
+    {
+        // not used here
+    }
+
     #endregion
+
+
+    private void SetupEncryption(Dictionary<byte, object> encryptionData)
+    {
+        // this should not be called when authentication is done per server. this mode does not support the required "key-exchange via token"
+        if (this.AuthMode == AuthModeOption.Auth)
+        {
+            if (DebugOut == DebugLevel.ERROR)
+            {
+                UnityEngine.Debug.LogWarning("SetupEncryption() called but ignored. Not XB1 compiled. EncryptionData: " + encryptionData.ToStringFull());
+                return;
+            }
+        }
+
+
+        // for AuthOnce and AuthOnceWss, we can keep the same secret across machines (for the session, basically)
+        if (DebugOut == DebugLevel.INFO)
+        {
+            UnityEngine.Debug.Log("SetupEncryption() got called. "+encryptionData.ToStringFull());
+        }
+
+        var mode = (EncryptionMode)(byte)encryptionData[EncryptionDataParameters.Mode];
+        switch (mode)
+        {
+            case EncryptionMode.PayloadEncryption:
+                byte[] secret = (byte[])encryptionData[EncryptionDataParameters.Secret1];
+                this.InitPayloadEncryption(secret);
+                break;
+            case EncryptionMode.DatagramEncryption:
+                {
+                    byte[] secret1 = (byte[])encryptionData[EncryptionDataParameters.Secret1];
+                    byte[] secret2 = (byte[])encryptionData[EncryptionDataParameters.Secret2];
+                    this.InitDatagramEncryption(secret1, secret2);
+                }
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
 
     protected internal void UpdatedActorList(int[] actorsInRoom)
     {
@@ -2846,7 +3029,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
 
             // Send OnPhotonInstantiate callback to newly created GO.
             // GO will be enabled when instantiated from Prefab and it does not matter if the script is enabled or disabled.
-            go.SendMessage(PhotonNetworkingMessage.OnPhotonInstantiate.ToString(), new PhotonMessageInfo(photonPlayer, serverTime, null), SendMessageOptions.DontRequireReceiver);
+            go.SendMessage(OnPhotonInstantiateString, new PhotonMessageInfo(photonPlayer, serverTime, null), SendMessageOptions.DontRequireReceiver);
             return go;
         }
         else
@@ -2907,7 +3090,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
 
             // Send OnPhotonInstantiate callback to newly created GO.
             // GO will be enabled when instantiated from Prefab and it does not matter if the script is enabled or disabled.
-            go.SendMessage(PhotonNetworkingMessage.OnPhotonInstantiate.ToString(), new PhotonMessageInfo(photonPlayer, serverTime, null), SendMessageOptions.DontRequireReceiver);
+            go.SendMessage(OnPhotonInstantiateString, new PhotonMessageInfo(photonPlayer, serverTime, null), SendMessageOptions.DontRequireReceiver);
             return go;
         }
     }
@@ -2964,7 +3147,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         HashSet<GameObject> playersGameObjects = new HashSet<GameObject>();
         foreach (PhotonView view in this.photonViewList.Values)
         {
-            if (view.CreatorActorNr == playerId)
+            if (view!=null && view.CreatorActorNr == playerId)
             {
                 playersGameObjects.Add(view.gameObject);
             }
@@ -3089,31 +3272,6 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         {
             GameObject.Destroy(go);
         }
-    }
-
-    /// <summary>
-    /// This returns -1 if the GO could not be found in list of instantiatedObjects.
-    /// </summary>
-    public int GetInstantiatedObjectsId(GameObject go)
-    {
-        int id = -1;
-        if (go == null)
-        {
-            Debug.LogError("GetInstantiatedObjectsId() for GO == null.");
-            return id;
-        }
-
-        PhotonView[] pvs = go.GetPhotonViewsInChildren();
-        if (pvs != null && pvs.Length > 0 && pvs[0] != null)
-        {
-            return pvs[0].instantiationId;
-        }
-
-        if (PhotonNetwork.logLevel >= PhotonLogLevel.Informational)
-            UnityEngine.Debug.Log("GetInstantiatedObjectsId failed for GO: " + go);
-
-
-        return id;
     }
 
     /// <summary>
@@ -3622,11 +3780,12 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         // Debug.Log("OnLevelWasLoaded photonViewList.Count: " + photonViewList.Count); // Exit Games internal log
 
         List<int> removeKeys = new List<int>();
-        foreach (PhotonView view in this.photonViewList.Values)
+        foreach (KeyValuePair<int, PhotonView> kvp in this.photonViewList)
         {
+            PhotonView view = kvp.Value;
             if (view == null)
             {
-                removeKeys.Add(view.viewID);
+                removeKeys.Add(kvp.Key);
             }
         }
 
@@ -3656,7 +3815,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         if (this.mActors.Count <= 1)
         {
             #if !PHOTON_DEVELOP
-            return; 
+            return;
             #endif
         }
 
@@ -3720,7 +3879,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
             }
         }   // all views serialized
 
-        
+
         // if we didn't produce anything to send, don't do it
         if (countOfUpdatesToSend == 0)
         {
@@ -3733,7 +3892,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         #if PHOTON_DEVELOP
         options.Receivers = ReceiverGroup.All;
         #endif
-       
+
         foreach (int groupId in this.dataPerGroupReliable.Keys)
         {
             options.InterestGroup = (byte)groupId;
@@ -3771,10 +3930,6 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
             groupHashtable.Clear();
         }
     }
-
-
-
-
 
 
     // calls OnPhotonSerializeView (through ExecuteOnSerialize)
@@ -3847,21 +4002,6 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         return null;
     }
 
-
-	string LogObjectArray(object[] data)
-	{
-	    if (data == null) return "null";
-        string[] sb = new string[data.Length];
-        for (int i = 0; i < data.Length; i++)
-        {
-            object o = data[i];
-            sb[i] = (o != null) ? o.ToString() : "null";
-        }
-
-        return string.Join(", ",sb);
-    }
-
-
     /// <summary>
     /// Reads updates created by OnSerializeWrite
     /// </summary>
@@ -3894,6 +4034,8 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         }
 
 
+
+
         if (view.synchronization == ViewSynchronization.ReliableDeltaCompressed)
         {
             object[] uncompressed = this.DeltaCompressionRead(view.lastOnSerializeDataReceived, data);
@@ -3912,49 +4054,22 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
             view.lastOnSerializeDataReceived = uncompressed;
             data = uncompressed;
         }
-
-        //// TODO: check if we really want to set the owner of a GO, based on who sends something about it.
-        //// this has nothing to do with reading the actual synchronization update.
-        //if (sender.ID != view.ownerId)
-        //{
-        //    if (!view.isSceneView || !sender.isMasterClient)
-        //    {
-        //        // obviously the owner changed and we didn't yet notice.
-        //        Debug.Log("Adjusting owner to sender of updates. From: " + view.ownerId + " to: " + sender.ID);
-        //        view.ownerId = sender.ID;
-        //    }
-        //}
-
-        PhotonStream pStream = new PhotonStream(false, data);
-        pStream.currentItem = 3;
+		
+        // This is when joining late to assign ownership to the sender
+        // this has nothing to do with reading the actual synchronization update.
+        // We don't do anything is OwnerShip Was Touched, which means we got the infos already. We only possibly act if ownership was never transfered.
+		// We do override OwnerShipWasTransfered if owner is the masterClient.
+		if (sender.ID != view.ownerId && (!view.OwnerShipWasTransfered || view.ownerId == 0) )
+        {
+            // obviously the owner changed and we didn't yet notice.
+            Debug.Log("Adjusting owner to sender of updates. From: " + view.ownerId + " to: " + sender.ID);
+            view.ownerId = sender.ID;
+        }
+		
+        this.readStream.SetReadStream(data, 3);
         PhotonMessageInfo info = new PhotonMessageInfo(sender, networkTime, view);
 
-        view.DeserializeView(pStream, info);
-    }
-
-    private bool AlmostEquals(object[] lastData, object[] currentContent)
-    {
-        if (lastData == null && currentContent == null)
-        {
-            return true;
-        }
-
-        if (lastData == null || currentContent == null || (lastData.Length != currentContent.Length))
-        {
-            return false;
-        }
-
-        for (int index = 0; index < currentContent.Length; index++)
-        {
-            object newObj = currentContent[index];
-            object oldObj = lastData[index];
-            if (!this.ObjectIsSameWithInprecision(newObj, oldObj))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        view.DeserializeView(this.readStream, info);
     }
 
 
@@ -3963,6 +4078,11 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
     // to conserve memory, the previousContent is re-used as buffer for the result! duplicate the values before using this, if needed
     // returns null, if nothing must be sent (current content might be null, which also returns null)
     // SyncFirstValue should be the index of the first actual data-value (3 in PUN's case, as 0=viewId, 1=(bool)compressed, 2=(int[])values that are now null)
+    public const int SyncViewId     = 0;
+    public const int SyncCompressed = 1;
+    public const int SyncNullValues = 2;
+    public const int SyncFirstValue = 3;
+
     private object[] DeltaCompressionWrite(object[] previousContent, object[] currentContent)
     {
         if (currentContent == null || previousContent == null || previousContent.Length != currentContent.Length)
@@ -3985,7 +4105,7 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         {
             object newObj = currentContent[index];
             object oldObj = previousContent[index];
-            if (this.ObjectIsSameWithInprecision(newObj, oldObj))
+            if (this.AlmostEquals(newObj, oldObj))
             {
                 // compress (by using null, instead of value, which is same as before)
                 compressedValues++;
@@ -4028,14 +4148,6 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
         return compressedContent;    // some data was compressed but we need to send something
     }
 
-    public const int SyncViewId     = 0;
-    public const int SyncCompressed = 1;
-    public const int SyncNullValues = 2;
-    public const int SyncFirstValue = 3;
-
-
-    // startIndex should be the index of the first actual data-value (3 in PUN's case, as 0=viewId, 1=(bool)compressed, 2=(int[])values that are now null)
-    // returns the incomingData with modified content. any object being null (means: value unchanged) gets replaced with a previously sent value. incomingData is being modified
     private object[] DeltaCompressionRead(object[] lastOnSerializeDataReceived, object[] incomingData)
     {
         if ((bool)incomingData[SyncCompressed] == false)
@@ -4071,11 +4183,40 @@ internal class NetworkingPeer : LoadBalancingPeer, IPhotonPeerListener
     }
 
 
+    // startIndex should be the index of the first actual data-value (3 in PUN's case, as 0=viewId, 1=(bool)compressed, 2=(int[])values that are now null)
+    // returns the incomingData with modified content. any object being null (means: value unchanged) gets replaced with a previously sent value. incomingData is being modified
+
+
+    private bool AlmostEquals(object[] lastData, object[] currentContent)
+    {
+        if (lastData == null && currentContent == null)
+        {
+            return true;
+        }
+
+        if (lastData == null || currentContent == null || (lastData.Length != currentContent.Length))
+        {
+            return false;
+        }
+
+        for (int index = 0; index < currentContent.Length; index++)
+        {
+            object newObj = currentContent[index];
+            object oldObj = lastData[index];
+            if (!this.AlmostEquals(newObj, oldObj))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Returns true if both objects are almost identical.
     /// Used to check whether two objects are similar enough to skip an update.
     /// </summary>
-    bool ObjectIsSameWithInprecision(object one, object two)
+    bool AlmostEquals(object one, object two)
     {
         if (one == null || two == null)
         {
