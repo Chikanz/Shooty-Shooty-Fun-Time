@@ -72,7 +72,7 @@ public class NetworkMan : Photon.MonoBehaviour
     private Initalize init;
 
     public InputField username;
-    public Canvas usernamecanvas;
+    public GameObject usernamecanvas;
 
     private const string alphabet = "abcdefghijklmnopqrstuvwxyz";
     private const string keyboard = "qwertyuiopasdfghjklzxcvbnm";
@@ -311,7 +311,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public void OnConnectedToMaster()
     {
-        usernamecanvas.enabled = true;
+        usernamecanvas.SetActive(true);
     }
 
     private void OnJoinedRoom()
@@ -686,7 +686,7 @@ public class NetworkMan : Photon.MonoBehaviour
         RoomOptions ro = new RoomOptions() { IsVisible = true, MaxPlayers = 2 };
         PhotonNetwork.JoinOrCreateRoom("ayy Lmao", ro, TypedLobby.Default);
         PhotonNetwork.player.name = username.text;
-        usernamecanvas.enabled = false;
+        usernamecanvas.SetActive(false);
     }
 
     private void OnPhotonPlayerDisconnected(PhotonPlayer otherPlayer)

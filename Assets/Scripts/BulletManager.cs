@@ -45,7 +45,7 @@ public class BulletManager : MonoBehaviour
         var c = PhotonNetwork.Instantiate("LevelHit", hit.point, hit.transform.rotation, 0);
         hitList.Add(c);
 
-        c.transform.parent = NM.transform; //Make child
+        c.transform.parent = other.transform; //Make child
 
         if (other.GetComponent<Renderer>() != null)
         {

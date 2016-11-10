@@ -2,15 +2,14 @@
 using System.Collections;
 
 public class gravItem : MonoBehaviour {
-
-
     Rigidbody RB;
-    BoxCollider BC;
-    // Use this for initialization
+    SphereCollider SC;
+
+    bool inGrav = false;
     void Start ()
     {
-        BC = GetComponent<BoxCollider>();        
         RB = GetComponent<Rigidbody>();
+        SC = GetComponentInChildren<SphereCollider>();
     }
 	
 	// Update is called once per frame
@@ -18,6 +17,10 @@ public class gravItem : MonoBehaviour {
     {
 
 	}
+
+    public void onTriggerEnter(Collider c)
+    {
+    }
 
     public void OnTriggerStay(Collider c)
     {
@@ -31,13 +34,13 @@ public class gravItem : MonoBehaviour {
             var distance = heading.magnitude;
             var direction = heading / distance; // This is now the normalized direction.
 
-            RB.AddForce(direction * (GetComponent<SphereCollider>().radius - distance) * 1.5f);
+            RB.AddForce(direction * (SC.radius - distance) * 1.5f);
         }
     }
 
     public void OnCollisionEnter(Collision c)
     {
         if (c.gameObject.tag == "Player")
-            Destroy(gameObject);
+            PhotonNetwork.Destroy(gameObject);
     }
 }

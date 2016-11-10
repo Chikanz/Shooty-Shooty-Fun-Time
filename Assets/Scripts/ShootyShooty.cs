@@ -296,6 +296,22 @@ public class ShootyShooty : NetworkBehaviour
                         else
                             Debug.Log("Couldn't find that item!" + hit.transform.gameObject.ToString());
                     }
+                    else if(hit.transform.GetComponent<Rigidbody>()) //Generic physics object
+                    {
+                        if (hit.transform.GetComponent<PhotonView>())
+                        {
+                            hit.transform.GetComponent<PhotonView>().RequestOwnership();
+
+                            if(hit.transform.GetComponent<PhotonView>().isMine)
+                            {
+                                hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 3000,hit.point);
+                            }
+                        }
+                        else
+                        {
+                            hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 3000, hit.point);
+                        }
+                    }
                 }
             }
             FPC.KickCam();
