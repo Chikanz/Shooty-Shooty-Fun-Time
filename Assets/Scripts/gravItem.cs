@@ -34,7 +34,7 @@ public class gravItem : MonoBehaviour {
             var distance = heading.magnitude;
             var direction = heading / distance; // This is now the normalized direction.
 
-            RB.AddForce(direction * (SC.radius - distance) * 1.5f);
+            RB.AddForce(direction * (SC.radius - distance) * 1.5f); //if collider scale is less than real world, shit fucks up
         }
     }
 

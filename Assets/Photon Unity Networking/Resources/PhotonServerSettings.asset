@@ -16,6 +16,7 @@ MonoBehaviour:
   ServerAddress: 192.168.1.107
   ServerPort: 5055
   AppID: 3f8e61e9-c05f-49f1-8f4b-b33d0c36e0e0
+  VoiceAppID: 
   PreferredRegion: 5
   EnabledRegions: -1
   JoinLobby: 0
@@ -63,4 +64,5 @@ MonoBehaviour:
   - Rockets
   - MakeActive
   - PlayHurt
+  - roundDraw
   DisableAutoOpenWizard: 1

@@ -12,6 +12,8 @@ using Random = UnityEngine.Random;
 
 public class NetworkMan : Photon.MonoBehaviour
 {
+    public Text roundTimerText;
+
     public Text WinText;
     public Text connectionText;
 
@@ -86,12 +88,13 @@ public class NetworkMan : Photon.MonoBehaviour
     private float newRoundTimer;
     public float endRoundTimer;
     private bool playerLocked;
+    private float roundTimer;
+    public float RoundLength = 60;
 
     public bool roundEnded;
     //public bool shotcaller;
 
     public delegate void RoundEvent();
-
     public static RoundEvent RestartEvent;
 
     public float deagleInnac = 0.2f;
@@ -209,6 +212,17 @@ public class NetworkMan : Photon.MonoBehaviour
     private void Update()
     {
         connectionText.text = PhotonNetwork.connectionStateDetailed.ToString() + "   " + PhotonNetwork.GetPing();
+        roundTimerText.text = roundTimer.ToString("00");
+
+        if (roundTimer > 0 && !playerLocked && !roundEnded)
+        {
+            roundTimer -= Time.deltaTime;
+        }
+
+        if(roundTimer < 0 && !roundEnded && PhotonNetwork.isMasterClient)
+        {
+            pv.RPC("roundDraw", PhotonTargets.All, null);
+        }
 
         if (Input.GetKeyDown(KeyCode.Backslash))
         {
@@ -284,7 +298,7 @@ public class NetworkMan : Photon.MonoBehaviour
             LockPlayer(false);
             FXString = "";
             FXList.text = "";
-            FXCountdown.text = "";
+            FXCountdown.text = "";            
         }
 
         //End Round Timer
@@ -294,6 +308,7 @@ public class NetworkMan : Photon.MonoBehaviour
             {
                 endRoundTimer -= Time.deltaTime;
             }
+
             endRoundTimer = Mathf.Clamp(endRoundTimer, 0, 10);
 
             if (endRoundTimer <= 0 && roundEnded && PhotonNetwork.isMasterClient)
@@ -542,6 +557,7 @@ public class NetworkMan : Photon.MonoBehaviour
         LockPlayer(true);
 
         newRoundTimer = 3;
+        roundTimer = RoundLength;
 
         FXList.text = FXString;
 
@@ -565,6 +581,14 @@ public class NetworkMan : Photon.MonoBehaviour
         endRoundTimer = 5;
         WinText.text = "<color=" + ColToHex(P2Col) + ">Blue Wins!</color>";
         Score += 1;
+    }
+
+    [PunRPC]
+    public void roundDraw()
+    {
+        roundEnded = true;
+        endRoundTimer = 5;
+        WinText.text = "<color=" + ColToHex(P1Col) + ">Round Draw</color>";
     }
 
     [PunRPC]
