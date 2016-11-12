@@ -65,4 +65,6 @@ MonoBehaviour:
   - MakeActive
   - PlayHurt
   - roundDraw
+  - GetGubs
+  - HalfGubs
   DisableAutoOpenWizard: 1

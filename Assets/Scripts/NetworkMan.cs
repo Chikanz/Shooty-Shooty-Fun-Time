@@ -114,6 +114,7 @@ public class NetworkMan : Photon.MonoBehaviour
     private bool slowMoP2;
     private readonly float slowMoMulti = 0.4f;
 
+
     //FX
     private string[] FXText =
         {
@@ -187,6 +188,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public bool oneShot;
     public bool shotGun;
     public bool explosions;
+    public bool bFriday;
 
     //Gamemode
     public bool GMFootBall;

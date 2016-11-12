@@ -6,25 +6,27 @@ public class gravItem : MonoBehaviour {
     SphereCollider SC;
 
     bool inGrav = false;
+    bool collided = false;
+    float TTL = 1;
+
     void Start ()
     {
         RB = GetComponent<Rigidbody>();
         SC = GetComponentInChildren<SphereCollider>();
     }
 	
-	// Update is called once per frame
 	void Update ()
     {
-
+        if (TTL > 0)
+            TTL -= Time.deltaTime;
 	}
 
-    public void onTriggerEnter(Collider c)
-    {
-    }
-
+    //All gub physics is handled on master client, hence ismine
+    //Possible disadvantage is physics is based on where the master thinks the client is, not where it actually is
+    //p2p sucks
     public void OnTriggerStay(Collider c)
     {
-        if(c.tag == "Player")
+        if(TTL < 0 && c.tag == "Player" && GetComponent<PhotonView>().isMine)
         {
             Vector3 pPos = c.transform.position;
 
@@ -34,13 +36,17 @@ public class gravItem : MonoBehaviour {
             var distance = heading.magnitude;
             var direction = heading / distance; // This is now the normalized direction.
 
-            RB.AddForce(direction * (SC.radius - distance) * 1.5f); //if collider scale is less than real world, shit fucks up
+            RB.AddForce(direction * ((SC.radius - 1) - distance) * 1.5f); //if collider scale is less than real world, shit fucks up
         }
     }
 
     public void OnCollisionEnter(Collision c)
     {
-        if (c.gameObject.tag == "Player")
+        if (TTL < 0 && c.gameObject.tag == "Player" && GetComponent<PhotonView>().isMine && !collided)
+        {
+            collided = true;
+            c.gameObject.GetComponent<Initalize>().getGubsHandler();
             PhotonNetwork.Destroy(gameObject);
+        }
     }
 }

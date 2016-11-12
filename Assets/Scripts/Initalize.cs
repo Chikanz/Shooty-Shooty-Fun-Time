@@ -12,6 +12,7 @@ public class Initalize : Photon.MonoBehaviour
 
     public int health = 4;
     public int maxHealth = 4;
+    public int GubsCount;
 
     //private float endRoundTimer;
     private float smoothing = 15f;
@@ -115,13 +116,6 @@ public class Initalize : Photon.MonoBehaviour
             running = anim.GetBool("IsRunning");
             walking = anim.GetBool("IsWalking");
             camRot = FPcam.rotation;
-
-            //if (endRoundTimer <= 0 && died)
-            //{
-            //    SetKill(false);
-            //
-            //    NM.pv.RPC("RestartRound", PhotonTargets.All, null);
-            //}
         }
     }
 
@@ -203,6 +197,33 @@ public class Initalize : Photon.MonoBehaviour
         anim.SetTrigger("outtaBullets");
     }
 
+    [PunRPC]
+    public void GetGubs(int count)
+    {
+        GubsCount += count;
+    }
+
+    [PunRPC]
+    public void HalfGubs()
+    {
+        GubsCount /= 2;
+
+        if (PhotonNetwork.isMasterClient)
+        {
+            for (int i = 0; i < 5; i++)
+                PhotonNetwork.Instantiate("franku", transform.position + (new Vector3(Random.value, 0, Random.value) * 5)
+                    , Random.rotation, 0);
+        }
+    }
+
+    //gubs rpc caller
+    public void getGubsHandler()
+    {
+        Debug.Log("You've Got Gubs!");
+        GetComponent<PhotonView>().RPC("GetGubs", PhotonTargets.All, 1);
+        
+    }
+
     public void Die(Vector3 forcepos)
     {
         if (died)
@@ -227,7 +248,12 @@ public class Initalize : Photon.MonoBehaviour
 
         if (NM.MDeath)
         {
-            //GetComponent<FirstPersonController>().SetExplosionMode(false);
+            if(NM.bFriday)
+            {
+                if (GetComponent<PhotonView>().isMine)
+                    GetComponent<PhotonView>().RPC("HalfGubs", PhotonTargets.All, null);
+            }
+
             health = maxHealth;
             NM.MoveToSpawn();
             return;

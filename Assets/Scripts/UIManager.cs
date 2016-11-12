@@ -29,12 +29,27 @@ public class UIManager : MonoBehaviour
     private FirstPersonController FPC;
     private ShootyShooty SS;
 
+    public GameObject GubsCanvas;
+    public Text GubsCount;
+
     private bool canUpdate;
 
     private void Start()
     {
         NetworkMan.RestartEvent += Init;
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+    }
+
+    private void Init()
+    {
+        if (!canUpdate)
+        {
+            canUpdate = true;
+            AmmoCountCanvas.enabled = true;
+            Player = NM.player;
+            FPC = Player.GetComponent<FirstPersonController>();
+            SS = Player.GetComponentInChildren<ShootyShooty>();
+        }
     }
 
     private void Update()
@@ -54,8 +69,16 @@ public class UIManager : MonoBehaviour
             Rslider.fillAmount = SS.Map(0.0f, SS.slowMoMax, 0.0f, 1.0f, SS.slowMoJuice);
 
             BlinkCanvas.enabled = NM.blink;
+
             if (NM.blink)
+            {
                 Displayblinks();
+            }
+
+            if(NM.bFriday)
+            {
+                GubsCount.text = Player.GetComponent<Initalize>().GubsCount.ToString();
+            }
 
             healthText.text = NM.getPlayerHealth() > 0 ? NM.getPlayerHealth().ToString() : "0";
         }
@@ -109,18 +132,6 @@ public class UIManager : MonoBehaviour
 
             if (j < 4 && j >= score)
                 ScoreImages[j].enabled = true;
-        }
-    }
-
-    private void Init()
-    {
-        if (!canUpdate)
-        {
-            canUpdate = true;
-            AmmoCountCanvas.enabled = true;
-            Player = NM.player;
-            FPC = Player.GetComponent<FirstPersonController>();
-            SS = Player.GetComponentInChildren<ShootyShooty>();
         }
     }
 
