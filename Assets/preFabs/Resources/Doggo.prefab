@@ -242,7 +242,7 @@ MonoBehaviour:
     InterpolateRotateTowardsSpeed: 180
     InterpolateLerpSpeed: 5
   m_ScaleModel:
-    SynchronizeEnabled: 0
+    SynchronizeEnabled: 1
     InterpolateOption: 0
     InterpolateMoveTowardsSpeed: 1
     InterpolateLerpSpeed: 0
@@ -268,6 +268,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 127924a4929b3bb49aa4d2d62219dfff, type: 3}
   - {fileID: 8300000, guid: df014bc53ed517b4c9ab36432385e069, type: 3}
   - {fileID: 8300000, guid: ca05a22ba1f666942a647e937e6dc589, type: 3}
+  lifetime: 10
 --- !u!114 &114000013433880060
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -281,6 +282,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ownerId: 0
   group: 0
+  OwnerShipWasTransfered: 0
   prefixBackup: -1
   observed: {fileID: 0}
   synchronization: 3

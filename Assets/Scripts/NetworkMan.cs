@@ -33,6 +33,7 @@ public class NetworkMan : Photon.MonoBehaviour
     public Slider fovSlider;
 
     public GameObject player;
+    public GameObject Otherplayer;
 
     public int playerNumber;
 
@@ -114,6 +115,9 @@ public class NetworkMan : Photon.MonoBehaviour
     private bool slowMoP2;
     private readonly float slowMoMulti = 0.4f;
 
+    public int p1GubsCount;
+    public int p2GubsCount;
+
 
     //FX
     private string[] FXText =
@@ -159,18 +163,21 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         "Shooty Ball",
         "Race",
+        "Black Friday",
     };
 
     private readonly string[] GMDesc =
 {
         "Soccer with guns",
         "Dying sends you back to a check point",
+        "Buy as much stuff as you can!",
     };
 
     private readonly string[] GMRPCs =
    {
         "Football",
         "Race",
+        "BFri",
     };
 
     //FX Bools
@@ -214,18 +221,49 @@ public class NetworkMan : Photon.MonoBehaviour
     private void Update()
     {
         connectionText.text = PhotonNetwork.connectionStateDetailed.ToString() + "   " + PhotonNetwork.GetPing();
-        roundTimerText.text = roundTimer.ToString("00");
 
+        //BlackFriday update score
+        if (bFriday)
+        {
+            if (PhotonNetwork.isMasterClient)
+            {
+                p1GubsCount = player.GetComponent<Initalize>().GubsCount;
+                p2GubsCount = Otherplayer.GetComponent<Initalize>().GubsCount;
+            }
+            else
+            {
+                p1GubsCount = Otherplayer.GetComponent<Initalize>().GubsCount;
+                p2GubsCount = player.GetComponent<Initalize>().GubsCount;
+            }
+        }
+
+        //Round Timer
+        roundTimerText.text = roundTimer.ToString("00");
         if (roundTimer > 0 && !playerLocked && !roundEnded)
         {
             roundTimer -= Time.deltaTime;
         }
 
-        if(roundTimer < 0 && !roundEnded && PhotonNetwork.isMasterClient)
+        //Round Timer runs out
+        if(roundTimer < 0 && !roundEnded)
         {
-            pv.RPC("roundDraw", PhotonTargets.All, null);
+            if (PhotonNetwork.isMasterClient)
+            {
+                if (!bFriday)
+                {
+                    pv.RPC("roundDraw", PhotonTargets.All, null);
+                }
+                else
+                {
+                    if(p1GubsCount == p2GubsCount)
+                        pv.RPC("roundDraw", PhotonTargets.All, null);
+                    else
+                        GMRoundEnd(p1GubsCount > p2GubsCount);   //Checks to see who won, p1 true p2 false
+                }
+            }
         }
 
+        //Chat
         if (Input.GetKeyDown(KeyCode.Backslash))
         {
             if (chat.enabled)
@@ -369,6 +407,7 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         lobbyCam.gameObject.SetActive(false);
         player = PhotonNetwork.Instantiate("Player", spawn.position, spawn.rotation, 0);
+        player.name = "Player " + (playerNumber + 1);
         SS = player.GetComponentInChildren<ShootyShooty>();
         FPC = player.GetComponentInChildren<FirstPersonController>();
         init = player.GetComponentInChildren<Initalize>();
@@ -386,6 +425,12 @@ public class NetworkMan : Photon.MonoBehaviour
         player.transform.position = spawn.position;
         player.transform.rotation = spawn.rotation;
         player.GetComponent<FirstPersonController>().ResetCamDirection();
+    }
+
+    private void FindOtherPlayer()
+    {
+        Otherplayer = GameObject.Find("Player(Clone)");
+        Debug.Assert(Otherplayer != null);
     }
 
     //Modifier Switches
@@ -535,8 +580,9 @@ public class NetworkMan : Photon.MonoBehaviour
     [PunRPC]
     public void RestartRound()
     {
-        //if (ShootyBall.gameObject != null)
-        //    PhotonNetwork.Destroy(ShootyBall);
+        //To be replaced with both players connected module
+        if (Otherplayer == null)
+            FindOtherPlayer();
 
         if (PhotonNetwork.isMasterClient)
         {
@@ -544,6 +590,10 @@ public class NetworkMan : Photon.MonoBehaviour
             ChooseFX();
             pv.RPC("FinishedCallingShots", PhotonTargets.Others, FXString, ThingExplainer.text);
         }
+
+        p1GubsCount = 0;
+        p2GubsCount = 0;
+        player.GetComponent<Initalize>().GubsCount = 0;
 
         roundEnded = false;
         init.SetKill(false);
@@ -583,6 +633,12 @@ public class NetworkMan : Photon.MonoBehaviour
         endRoundTimer = 5;
         WinText.text = "<color=" + ColToHex(P2Col) + ">Blue Wins!</color>";
         Score += 1;
+    }
+
+    [PunRPC]
+    public void GetGubsCount(int gubs)
+    {
+        p2GubsCount = gubs;
     }
 
     [PunRPC]
@@ -698,6 +754,13 @@ public class NetworkMan : Photon.MonoBehaviour
         RaceFallBounds.SetActive(b);
     }
 
+    [PunRPC]
+    public void BFri(bool b)
+    {
+        bFriday = b;
+        MDeath = b;
+    }
+
     //Other RPCs
     [PunRPC]
     public void FinishedCallingShots(string f, string thing)
@@ -720,7 +783,8 @@ public class NetworkMan : Photon.MonoBehaviour
         pv.RPC("SendChatMessage", PhotonTargets.All, otherPlayer.name + " has quit");
     }
 
-    //THE DECIDER
+
+    //THE BIG DADDY DECIDER
     private void ChooseFX()
     {
         ThingExplainer.text = "";
@@ -744,9 +808,10 @@ public class NetworkMan : Photon.MonoBehaviour
         ThingExplainer.text += "<size=18>" + "Combat" + "</size> \n";
         ThingExplainer.text += "Shoot your friends in the face!\n\n";
 
-        if (Random.value > 0.3f)
+        if (Random.value > 0.0f) //0.03f
         {
-            gmSelect = Random.Range(0, GmCount);
+            //gmSelect = Random.Range(0, GmCount);
+            gmSelect = 2;
             SetGM(gmSelect, true);
             FXString += GMText[gmSelect] + "\n";
             ThingExplainer.text = "<size=18>" + GMText[gmSelect] + "</size> \n";
@@ -786,9 +851,10 @@ public class NetworkMan : Photon.MonoBehaviour
         FXString = FXString.TrimEnd(trimings);
     }
 
-    private void flipFX(int i, bool flip)
-    //I find it hilarious how this wouldn't work in any other situation
+
+    private void flipFX(int i, bool flip) 
     {
+        //I find it hilarious how this wouldn't work in any other situation
         pv.RPC(FXRPCs[i], PhotonTargets.All, flip);
     }
 
@@ -821,6 +887,7 @@ public class NetworkMan : Photon.MonoBehaviour
         player.GetComponentInChildren<ShootyShooty>().shootingEnabled = !l;
     }
 
+    //Ends the round for game modes
     public void GMRoundEnd(bool p1Won)
     {
         if (p1Won)
@@ -830,6 +897,9 @@ public class NetworkMan : Photon.MonoBehaviour
 
         MDeath = false;
     }
+
+
+
 
     //UI functions
 

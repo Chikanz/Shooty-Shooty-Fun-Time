@@ -67,4 +67,8 @@ MonoBehaviour:
   - roundDraw
   - GetGubs
   - HalfGubs
+  - GetGubsScore
+  - BFri
+  - GetGubsCount
+  - enable
   DisableAutoOpenWizard: 1

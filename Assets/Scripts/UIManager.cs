@@ -30,7 +30,8 @@ public class UIManager : MonoBehaviour
     private ShootyShooty SS;
 
     public GameObject GubsCanvas;
-    public Text GubsCount;
+    public Text P1GubsCount;
+    public Text P2GubsCount;
 
     private bool canUpdate;
 
@@ -77,7 +78,8 @@ public class UIManager : MonoBehaviour
 
             if(NM.bFriday)
             {
-                GubsCount.text = Player.GetComponent<Initalize>().GubsCount.ToString();
+                P1GubsCount.text = NM.p1GubsCount.ToString();
+                P2GubsCount.text = NM.p2GubsCount.ToString();
             }
 
             healthText.text = NM.getPlayerHealth() > 0 ? NM.getPlayerHealth().ToString() : "0";

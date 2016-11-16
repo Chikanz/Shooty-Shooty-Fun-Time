@@ -17,6 +17,7 @@ TagManager:
   - FinishLine
   - Bullet
   - NoFloor
+  - Gubs
   layers:
   - Default
   - TransparentFX

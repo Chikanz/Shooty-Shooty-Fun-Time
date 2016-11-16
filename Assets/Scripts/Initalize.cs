@@ -146,6 +146,7 @@ public class Initalize : Photon.MonoBehaviour
             stream.SendNext(camRot);
             stream.SendNext(running);
             stream.SendNext(walking);
+            stream.SendNext(GubsCount);
         }
         else
         {
@@ -154,6 +155,7 @@ public class Initalize : Photon.MonoBehaviour
             SD.camRot = (Quaternion)stream.ReceiveNext();
             SD.AnimRunning = (bool)stream.ReceiveNext();
             SD.AnimWalking = (bool)stream.ReceiveNext();
+            GubsCount = (int)stream.ReceiveNext();
         }
     }
 
@@ -206,22 +208,21 @@ public class Initalize : Photon.MonoBehaviour
     [PunRPC]
     public void HalfGubs()
     {
-        GubsCount /= 2;
-
         if (PhotonNetwork.isMasterClient)
         {
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < GubsCount/2; i++)
                 PhotonNetwork.Instantiate("franku", transform.position + (new Vector3(Random.value, 0, Random.value) * 5)
                     , Random.rotation, 0);
         }
+
+        GubsCount /= 2;
     }
 
     //gubs rpc caller
     public void getGubsHandler()
     {
-        Debug.Log("You've Got Gubs!");
-        GetComponent<PhotonView>().RPC("GetGubs", PhotonTargets.All, 1);
-        
+            Debug.Log("You've Got Gubs!");
+            GetComponent<PhotonView>().RPC("GetGubs", PhotonTargets.All, 1);
     }
 
     public void Die(Vector3 forcepos)

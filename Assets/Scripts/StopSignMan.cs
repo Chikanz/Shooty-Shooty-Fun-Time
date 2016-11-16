@@ -4,17 +4,26 @@ using System.Collections.Generic;
 
 public class StopSignMan : MonoBehaviour {
 
-    public GameObject[] signs;
+    private List<GameObject> gubs = new List<GameObject>();
     private List<Vector3> startPos = new List<Vector3>();
     private List<Quaternion> startRot = new List<Quaternion>();
     List<int> list = new List<int>();
+    private NetworkMan NM;
 
     void Start ()
     {
-        for(int i = 0; i < signs.Length; i++)
+
+
+        NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+
+        foreach (Transform child in GetComponentsInChildren<Transform>())
         {
-            startPos.Add(signs[i].transform.position);
-            startRot.Add(signs[i].transform.rotation);
+            if (child.GetComponent<Rigidbody>())
+            {
+                gubs.Add(child.gameObject);
+                startPos.Add(child.transform.position);
+                startRot.Add(child.transform.rotation);
+            }
         }
 
         NetworkMan.RestartEvent += reset;
@@ -27,15 +36,24 @@ public class StopSignMan : MonoBehaviour {
 
     public void reset()
     {
-        for (int i = 0; i < signs.Length; i++)
+        for (int i = 0; i < gubs.Count; i++)
         {
-            signs[i].gameObject.SetActive(true);
+            //Turn on if gubs if black friday
+            //Turn on any other object if not (eg stop signs)
+            if (gubs[i].tag != "Gubs" || 
+                gubs[i].tag == "Gubs" && NM.bFriday)
+            {
+                if (gubs[i].GetComponent<gravItem>())
+                    gubs[i].GetComponent<gravItem>().NetworkEnable(true);
+                else
+                    gubs[i].gameObject.SetActive(true);
+            }
 
-            signs[i].GetComponent<Rigidbody>().velocity = Vector3.zero;
-            signs[i].GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+            gubs[i].GetComponent<Rigidbody>().velocity = Vector3.zero;
+            gubs[i].GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
 
-            signs[i].transform.position = startPos[i];
-            signs[i].transform.rotation = startRot[i];
+            gubs[i].transform.position = startPos[i];
+            gubs[i].transform.rotation = startRot[i];
             
         }
     }

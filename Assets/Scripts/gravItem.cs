@@ -21,6 +21,20 @@ public class gravItem : MonoBehaviour {
             TTL -= Time.deltaTime;
 	}
 
+    [PunRPC]
+    void enable(bool b)
+    {
+        if (b)
+            collided = false;
+
+        gameObject.SetActive(b);
+    }
+
+    public void NetworkEnable(bool enabled)
+    {
+        GetComponent<PhotonView>().RPC("enable", PhotonTargets.All, enabled);
+    }
+
     //All gub physics is handled on master client, hence ismine
     //Possible disadvantage is physics is based on where the master thinks the client is, not where it actually is
     //p2p sucks
@@ -46,7 +60,8 @@ public class gravItem : MonoBehaviour {
         {
             collided = true;
             c.gameObject.GetComponent<Initalize>().getGubsHandler();
-            PhotonNetwork.Destroy(gameObject);
+
+            NetworkEnable(false);
         }
     }
 }
