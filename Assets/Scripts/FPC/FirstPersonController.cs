@@ -124,9 +124,11 @@ public class FirstPersonController : MonoBehaviour
 
     public bool Mlook = true;
     public bool canMove = true;
+
     public bool explosionMode;
     private Vector3 landed;
     public float stopMagnitude = 10;
+    private float explosionTimer = 0;
 
     // Use this for initialization
     private void Start()
@@ -186,21 +188,18 @@ public class FirstPersonController : MonoBehaviour
         m_PreviouslyGrounded = m_CharacterController.isGrounded;
 
         //Explodey things
-        //if (explosionTimer > 0)
-        //{
-        //    explosionTimer -= Time.deltaTime;
-        //}
-        //else if (explosionMode)
-        //{
-        //    explosionMode = false;
-        //    SetExplosionMode(false);
-        //}
-
-        if (stopMagnitude < 10)
+        //Explosion timer is the minumum time before stop magnitude inscreases,
+        //which stops the player when their magnitude is less than it.
+        if (explosionMode && explosionTimer > 0)
         {
-            stopMagnitude += 0.5f;
+            explosionTimer -= Time.deltaTime;
+        }
+        else if (explosionMode && explosionTimer <= 0)
+        {
+            stopMagnitude += Time.deltaTime * 3.2f;
         }
 
+        //Stop Explosion mode
         if (RB.velocity.magnitude < stopMagnitude && explosionMode)
         {
             SetExplosionMode(false);
@@ -518,11 +517,17 @@ public class FirstPersonController : MonoBehaviour
             landed = transform.position;
             m_MoveDir.y = 0;
         }
+        else
+        {
+            explosionTimer = 0.1f;
+        }
     }
 
     public void Explode()
     {
-        if (!GetComponent<PhotonView>().isMine) return;
+        //Can only explode self
+        //can only explode while not exploded
+        if (!GetComponent<PhotonView>().isMine || explosionMode) return;
 
         SetExplosionMode(true);
     }

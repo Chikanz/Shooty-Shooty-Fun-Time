@@ -138,6 +138,7 @@
      <Compile Include="Assets\Scripts\bulletScript.cs" />
      <Compile Include="Assets\Scripts\gravItem.cs" />
      <Compile Include="Assets\Scripts\killparticle.cs" />
+     <Compile Include="Assets\Scripts\punch.cs" />
      <None Include="Assets\Standard Assets\Effects\ToonShading\Shaders\ToonBasic.shader" />
      <None Include="Assets\Standard Assets\Effects\AntiAliasing\FXAA\Resources\FXAA3.cginc" />
      <None Include="Assets\Photon Unity Networking\link.xml" />

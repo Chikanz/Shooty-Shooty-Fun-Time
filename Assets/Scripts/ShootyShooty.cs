@@ -9,6 +9,7 @@ public class ShootyShooty : NetworkBehaviour
     public ParticleSystem muzzleFlash;
 
     public Animator anim;
+    public Animator PunchAnim;
 
     public GameObject pokeBall;
 
@@ -119,6 +120,7 @@ public class ShootyShooty : NetworkBehaviour
 
     private void Update()
     {
+        //Reload
         if (Input.GetKeyDown(KeyCode.R) && !reloading && inClip < maxClip && FPC.m_IsWalking)
         {
             anim.SetTrigger("Reload");
@@ -127,6 +129,7 @@ public class ShootyShooty : NetworkBehaviour
             Playerpv.RPC("ReloadRPC", PhotonTargets.All, null);
         }
 
+        //Shooty shooty
         if (Input.GetKeyDown(KeyCode.Mouse0)
             && shootingEnabled
             && !reloading
@@ -158,11 +161,10 @@ public class ShootyShooty : NetworkBehaviour
             }
         }
 
-        if (Input.GetKey(KeyCode.Mouse1) && canthrow)
+        //Punch
+        if (Input.GetKeyDown(KeyCode.Mouse1))
         {
-            var pb = Instantiate(pokeBall, transform.position, Quaternion.identity) as GameObject;
-            pb.GetComponent<Rigidbody>().AddForce(transform.forward * 1000);
-            canthrow = false;
+            PunchAnim.SetTrigger("Punch");
         }
 
         //SlowMo Stuff

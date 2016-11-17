@@ -91,13 +91,12 @@ public class Initalize : Photon.MonoBehaviour
             //transform.FindChild("Body").gameObject.layer = 2;
 
             foreach (Camera cam in GetComponentsInChildren<Camera>())
-                cam.enabled = true;
+                cam.enabled = true; 
 
-            Transform Gun = transform.Find("FirstPersonCharacter/GunCamera/Gun");
             Transform particles = transform.Find("FirstPersonCharacter/GunCamera/Particles");
 
-            foreach (Transform gunParts in Gun.GetComponentsInChildren<Transform>())
-                gunParts.gameObject.layer = 8;
+            foreach (Transform child in transform.Find("FirstPersonCharacter/GunCamera").GetComponentsInChildren<Transform>())
+                child.gameObject.layer = 8;
 
             particles.gameObject.layer = 8;
         }
@@ -166,6 +165,7 @@ public class Initalize : Photon.MonoBehaviour
 
         if (health <= 0 && photonView.isMine)
         {
+            //Questionable
             if (NM.oneShot && NM.GMRace)
                 NM.RaceSpawnReset();
 
@@ -216,6 +216,33 @@ public class Initalize : Photon.MonoBehaviour
         }
 
         GubsCount /= 2;
+    }
+
+    [PunRPC]
+    public void GotPunched(int damage)
+    {
+        health -= damage;
+
+        if (health <= 0 && photonView.isMine)
+        {
+            //Questionable
+            if (NM.oneShot && NM.GMRace)
+                NM.RaceSpawnReset();
+
+            Die();
+        }
+
+        if(!died)
+        {
+            GetComponentInChildren<FirstPersonController>().Explode();
+        }
+
+        GetComponent<Rigidbody>().AddExplosionForce(100,transform.position - (transform.up * 3),5,1,ForceMode.Impulse);
+    }
+
+    public void Punched()
+    {
+        GetComponent<PhotonView>().RPC("GotPunched", PhotonTargets.All, 1);
     }
 
     //gubs rpc caller

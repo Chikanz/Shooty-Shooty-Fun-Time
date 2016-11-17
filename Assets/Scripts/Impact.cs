@@ -30,6 +30,7 @@ public class Impact : MonoBehaviour
 
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
 
+        //Splosions
         if (NM.explosions)
         {
             Destroy(gameObject, 1);
@@ -44,7 +45,7 @@ public class Impact : MonoBehaviour
 
                 Rigidbody rb = hit.GetComponentInParent<Rigidbody>();
                 if (rb != null)
-                    rb.AddExplosionForce(power, explosionPos, radius, 15.0F);
+                    rb.AddExplosionForce(power, explosionPos, radius, 1);
             }
             splodeySphere = transform.GetChild(0);
             splodeySphere.gameObject.SetActive(true);

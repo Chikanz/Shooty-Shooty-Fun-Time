@@ -71,4 +71,5 @@ MonoBehaviour:
   - BFri
   - GetGubsCount
   - enable
+  - GotPunched
   DisableAutoOpenWizard: 1
