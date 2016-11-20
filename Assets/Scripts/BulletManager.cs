@@ -10,21 +10,19 @@ public class BulletManager : MonoBehaviour
     public int PetMax;
     public int maxImpacts = 2;
 
-    public GameObject LevelHit;
     private NetworkMan NM;
 
-    // Use this for initialization
     private void Start()
     {
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
         NetworkMan.RestartEvent += die;
     }
-
-    // Update is called once per frame
+    
     private void Update()
     {
     }
 
+    //Clears on level restart
     public void die()
     {
         foreach (GameObject t in hitList)
@@ -64,6 +62,7 @@ public class BulletManager : MonoBehaviour
         return hitList.Count - 1;
     }
 
+    //Doggos and cates
     public void NewPet(GameObject pet)
     {
         PetList.Add(pet);

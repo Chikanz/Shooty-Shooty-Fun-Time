@@ -196,7 +196,7 @@ public class FirstPersonController : MonoBehaviour
         }
         else if (explosionMode && explosionTimer <= 0)
         {
-            stopMagnitude += Time.deltaTime * 3.2f;
+            stopMagnitude += Time.deltaTime * 4f;
         }
 
         //Stop Explosion mode
@@ -510,6 +510,7 @@ public class FirstPersonController : MonoBehaviour
         canMove = !b;
         GetComponent<Rigidbody>().isKinematic = !b;
         GetComponent<Rigidbody>().freezeRotation = b;
+        GetComponent<Rigidbody>().useGravity = b;
         stopMagnitude = 0;
 
         if (!b)

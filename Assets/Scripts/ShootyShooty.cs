@@ -233,7 +233,6 @@ public class ShootyShooty : NetworkBehaviour
                     var bullet = Instantiate(
                         Bullet, Gunlight.transform.position,
                         Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
-
                     var BS = bullet.GetComponent<bulletScript>();
 
                     //Link Bullet and impact
@@ -258,7 +257,12 @@ public class ShootyShooty : NetworkBehaviour
                     var distance = heading.magnitude;
                     var direction = heading / distance; // This is now the normalized direction.
 
+                    //Shoot Bullet in direction of hit
                     bullet.GetComponent<Rigidbody>().AddForce(direction * bulletSpeed);
+
+                    //Insta explosion for close hits
+                    if (NM.explosions && distance < 10)
+                        BM.CreateNextHit(BS.id);
 
                     //ShootyBall
                     if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
@@ -431,7 +435,7 @@ public class ShootyShooty : NetworkBehaviour
             inac = true;
 
         //Override movement
-        if (NM.GMRace || NM.lowGrav)
+        if (NM.GMRace || NM.lowGrav || NM.explosions)
             inac = false;
 
         //Jump Case

@@ -23,6 +23,7 @@ public class Impact : MonoBehaviour
         Activate(true);
     }
 
+    //This makes my head hurt
     public void Activate(bool rpc)
     {
         if (!rpc)

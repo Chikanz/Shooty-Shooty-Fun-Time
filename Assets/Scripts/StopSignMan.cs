@@ -12,11 +12,9 @@ public class StopSignMan : MonoBehaviour {
 
     void Start ()
     {
-
-
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
 
-        foreach (Transform child in GetComponentsInChildren<Transform>())
+        foreach (Transform child in GetComponentsInChildren<Transform>(true))
         {
             if (child.GetComponent<Rigidbody>())
             {
@@ -38,10 +36,10 @@ public class StopSignMan : MonoBehaviour {
     {
         for (int i = 0; i < gubs.Count; i++)
         {
-            //Turn on if gubs if black friday
+            //Turn on if not gubs or if black friday
             //Turn on any other object if not (eg stop signs)
-            if (gubs[i].tag != "Gubs" || 
-                gubs[i].tag == "Gubs" && NM.bFriday)
+            if (gubs[i].tag != "Gubs" ||
+                PhotonNetwork.isMasterClient && gubs[i].tag == "Gubs" && NM.bFriday)
             {
                 if (gubs[i].GetComponent<gravItem>())
                     gubs[i].GetComponent<gravItem>().NetworkEnable(true);
@@ -54,7 +52,6 @@ public class StopSignMan : MonoBehaviour {
 
             gubs[i].transform.position = startPos[i];
             gubs[i].transform.rotation = startRot[i];
-            
         }
     }
 }

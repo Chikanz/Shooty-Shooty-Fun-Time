@@ -46,6 +46,7 @@ public class NetworkMan : Photon.MonoBehaviour
 
     public GameObject innerStuff;
     public GameObject shootyBallStuff;
+    public GameObject BFridayStuff;
 
     public GameObject ShootyBall;
 
@@ -759,6 +760,8 @@ public class NetworkMan : Photon.MonoBehaviour
     {
         bFriday = b;
         MDeath = b;
+        BFridayStuff.SetActive(b);
+        innerStuff.SetActive(!b);
     }
 
     //Other RPCs
@@ -830,8 +833,6 @@ public class NetworkMan : Photon.MonoBehaviour
             pastIndexes.Add(3); //Exclude OneShot
         }
 
-        //Disable rockets for now
-        pastIndexes.Add(8);
         exclusions = pastIndexes.Count;
 
         while (pastIndexes.Count - exclusions <= numFX - 1)
