@@ -72,4 +72,6 @@ MonoBehaviour:
   - GetGubsCount
   - enable
   - GotPunched
+  - Punch
+  - Shoot
   DisableAutoOpenWizard: 1

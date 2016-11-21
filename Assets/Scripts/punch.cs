@@ -17,18 +17,27 @@ public class punch : MonoBehaviour {
 
     void OnCollisionEnter(Collision c)
     {
-        //punchin players awww ye
-        if(canPunch && c.gameObject.tag == "Player" && !c.gameObject.GetComponent<PhotonView>().isMine)
+        if (canPunch)
         {
-            c.gameObject.GetComponent<Initalize>().Punched();
-            c.gameObject.GetComponent<PhotonView>().RPC("PlayHurt", PhotonTargets.Others, null);
+            //punchin players awww ye
+            if (c.gameObject.tag == "Player" && !c.gameObject.GetComponent<PhotonView>().isMine)
+            {
+                c.gameObject.GetComponent<Initalize>().Punched();
+                c.gameObject.GetComponent<PhotonView>().RPC("PlayHurt", PhotonTargets.Others, null);
+            }
+            //Shoppers
+            if (c.gameObject.tag == "Shopper")
+            {
+                c.gameObject.GetComponent<PhotonView>().RPC("Punch", PhotonTargets.All, null);
+            }
+
+            //Everything else (no players allowed!)
+            else if (c.gameObject.GetComponent<Rigidbody>() && c.gameObject.tag != "Player")
+            {
+                c.gameObject.GetComponent<Rigidbody>().AddForceAtPosition
+                    (transform.up * 10000, c.contacts[0].point);
+            }
             canPunch = false;
-        }
-        //Everything else (no players allowed!)
-        else if(c.gameObject.GetComponent<Rigidbody>() && c.gameObject.tag != "Player")
-        {
-            c.gameObject.GetComponent<Rigidbody>().AddForceAtPosition
-                (transform.up * 10000, c.contacts[0].point);
         }
     }
 

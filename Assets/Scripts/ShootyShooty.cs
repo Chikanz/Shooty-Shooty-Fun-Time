@@ -13,9 +13,7 @@ public class ShootyShooty : NetworkBehaviour
 
     public GameObject pokeBall;
 
-    public GameObject Bullet;
-
-    public GameObject impactPrefab;
+    public GameObject Bullet;    
 
     public AudioSource gunSound;
     public GameObject casing;
@@ -285,14 +283,16 @@ public class ShootyShooty : NetworkBehaviour
                         Hitmarker(hit.transform.name == "Head");
                         BloodParticles(hit);
                     }
-                    else if (hit.transform.tag == "Enemy")
+                    else if (hit.transform.tag == "Shopper")
                     {
-                        hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 500, hit.point);
+                        hit.transform.GetComponent<PhotonView>().RPC("Shoot",PhotonTargets.All,transform.forward);
+                        BS.impact = false;
                         BloodParticles(hit);
                     }
                     else if (hit.transform.tag == "Casing")
                     {
                         hit.transform.GetComponent<Rigidbody>().AddForce(200 * transform.forward);
+                        BS.impact = false;
                     }
                     else if (NM.godBullets)
                     {
@@ -364,8 +364,9 @@ public class ShootyShooty : NetworkBehaviour
 
     private void BloodParticles(RaycastHit hit)
     {
-        var blood = Instantiate(impactPrefab, hit.point, Quaternion.identity) as GameObject; //hit.point
+        var blood = PhotonNetwork.Instantiate("blood", hit.point, Quaternion.identity,0) as GameObject; //hit.point
         blood.transform.localScale = new Vector3(1, 1, 1);
+
         impactList.Add(blood);
 
         blood.transform.parent = hit.transform.gameObject.transform;

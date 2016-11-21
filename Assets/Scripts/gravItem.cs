@@ -40,7 +40,9 @@ public class gravItem : MonoBehaviour {
     //p2p sucks
     public void OnTriggerStay(Collider c)
     {
-        if(TTL < 0 && c.tag == "Player" && GetComponent<PhotonView>().isMine)
+        if(TTL < 0 && 
+            c.tag == "Player" || c.tag == "Shopper" &&
+            GetComponent<PhotonView>().isMine)
         {
             Vector3 pPos = c.transform.position;
 
@@ -50,7 +52,7 @@ public class gravItem : MonoBehaviour {
             var distance = heading.magnitude;
             var direction = heading / distance; // This is now the normalized direction.
 
-            float forceMulti = ((SC.radius) - distance) * 1.5f;
+            float forceMulti = (SC.radius - distance) * 1.5f;
 
             if(forceMulti > 0)                          //Make sure force doesn't go backwards
                 RB.AddForce(direction * forceMulti);    //if collider scale is less than real world, shit fucks up
@@ -59,12 +61,20 @@ public class gravItem : MonoBehaviour {
 
     public void OnCollisionEnter(Collision c)
     {
-        if (TTL < 0 && c.gameObject.tag == "Player" && GetComponent<PhotonView>().isMine && !collided)
+        if (TTL < 0 && GetComponent<PhotonView>().isMine && !collided)
         {
-            collided = true;
-            c.gameObject.GetComponent<Initalize>().getGubsHandler();
-
-            NetworkEnable(false);
+            if (c.gameObject.tag == "Player")
+            {
+                c.gameObject.GetComponent<Initalize>().getGubsHandler();
+                collided = true;
+                NetworkEnable(false);
+            }
+            else if(c.gameObject.tag == "Shopper")
+            {
+                c.gameObject.GetComponent<Shopper>().gubsCount += 1;
+                collided = true;
+                NetworkEnable(false);
+            }
         }
     }
 }

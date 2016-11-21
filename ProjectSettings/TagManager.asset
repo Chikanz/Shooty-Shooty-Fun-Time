@@ -18,6 +18,7 @@ TagManager:
   - Bullet
   - NoFloor
   - Gubs
+  - Shopper
   layers:
   - Default
   - TransparentFX
