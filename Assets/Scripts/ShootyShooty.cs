@@ -225,7 +225,9 @@ public class ShootyShooty : NetworkBehaviour
                 spray.y += Random.Range(-inaccuracy, inaccuracy);
                 spray.z += Random.Range(-inaccuracy, inaccuracy);
 
-                if (Physics.Raycast(transform.position, spray, out hit, 300f))
+                //RAYCAST BIG DADDY
+                //Layer mask guide: ~ = not layer 8
+                if (Physics.Raycast(transform.position, spray, out hit, 300f, ~((1<<8) | (1<<2)) ))
                 {
                     //Bullet Instance
                     var bullet = Instantiate(
@@ -235,7 +237,7 @@ public class ShootyShooty : NetworkBehaviour
 
                     //Link Bullet and impact
                     BS.SetHitPos(hit.transform);
-                    BS.id = BM.NewHit(hit, hit.transform.gameObject);
+                    BS.id = BM.NewHit(hit.point, hit.transform.rotation, hit.transform.gameObject);
 
                     //Turn off render for player + shootyball
                     if (hit.transform.tag == "Player" ||
@@ -285,9 +287,12 @@ public class ShootyShooty : NetworkBehaviour
                     }
                     else if (hit.transform.tag == "Shopper")
                     {
-                        hit.transform.GetComponent<PhotonView>().RPC("Shoot",PhotonTargets.All,transform.forward);
-                        BS.impact = false;
-                        BloodParticles(hit);
+                        if (!NM.explosions)
+                        {
+                            hit.transform.GetComponent<PhotonView>().RPC("Shoot", PhotonTargets.All, transform.forward);
+                            BS.impact = false;
+                            BloodParticles(hit);
+                        }
                     }
                     else if (hit.transform.tag == "Casing")
                     {
@@ -364,18 +369,15 @@ public class ShootyShooty : NetworkBehaviour
 
     private void BloodParticles(RaycastHit hit)
     {
-        var blood = PhotonNetwork.Instantiate("blood", hit.point, Quaternion.identity,0) as GameObject; //hit.point
-        blood.transform.localScale = new Vector3(1, 1, 1);
-
-        impactList.Add(blood);
-
-        blood.transform.parent = hit.transform.gameObject.transform;
-        blood.GetComponent<ParticleSystem>().Play();
-
-        if (impactList.Count > 3)
+        if (impactList.Count > 5)
         {
-            Destroy(impactList[0]);
-            impactList.RemoveAt(0);
+            var blood = PhotonNetwork.Instantiate("blood", hit.point, Quaternion.identity, 0) as GameObject; //hit.point
+            blood.transform.localScale = new Vector3(1, 1, 1);
+
+            impactList.Add(blood);
+
+            blood.transform.parent = hit.transform.gameObject.transform;
+            blood.GetComponent<ParticleSystem>().Play();
         }
     }
 

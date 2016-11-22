@@ -74,4 +74,5 @@ MonoBehaviour:
   - GotPunched
   - Punch
   - Shoot
+  - RagDoll
   DisableAutoOpenWizard: 1

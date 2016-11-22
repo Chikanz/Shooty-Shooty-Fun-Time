@@ -44,6 +44,11 @@ public class Impact : MonoBehaviour
                     hit.GetComponentInParent<FirstPersonController>().Explode();
                 }
 
+                if (hit.transform.tag == "Shopper")
+                {
+                    hit.GetComponentInParent<PhotonView>().RPC("RagDoll", PhotonTargets.All,null);
+                }
+
                 Rigidbody rb = hit.GetComponentInParent<Rigidbody>();
                 if (rb != null)
                     rb.AddExplosionForce(power, explosionPos, radius, 1);
@@ -52,7 +57,7 @@ public class Impact : MonoBehaviour
             splodeySphere.gameObject.SetActive(true);
             splodeySphere.localScale = new Vector3(radius, radius, radius);
         }
-        else
+        else //Normal impact
         {
             GetComponent<Renderer>().material.color = otherCol;
             GetComponent<ParticleSystemRenderer>().material.color = otherCol;

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class StopSignMan : MonoBehaviour {
 
+    GameObject Barriers;
+
     private List<GameObject> gubs = new List<GameObject>();
     private List<Vector3> startPos = new List<Vector3>();
     private List<Quaternion> startRot = new List<Quaternion>();
@@ -34,7 +36,8 @@ public class StopSignMan : MonoBehaviour {
 
     public void reset()
     {
-        for (int i = 0; i < gubs.Count; i++)
+        
+            for (int i = 0; i < gubs.Count; i++)
         {
             //Turn on if not gubs or if black friday
             //Turn on any other object if not (eg stop signs)
@@ -53,5 +56,6 @@ public class StopSignMan : MonoBehaviour {
             gubs[i].transform.position = startPos[i];
             gubs[i].transform.rotation = startRot[i];
         }
+        
     }
 }

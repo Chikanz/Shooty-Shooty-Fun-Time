@@ -29,7 +29,7 @@ GameObject:
   - 114: {fileID: 114000012134436158}
   m_Layer: 0
   m_Name: Shopper
-  m_TagString: Untagged
+  m_TagString: Shopper
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

@@ -38,9 +38,11 @@ public class BulletManager : MonoBehaviour
             hitList[id].GetComponent<Impact>().Activate(false);
     }
 
-    public int NewHit(RaycastHit hit, GameObject other)
+    //pos and rot used to instance
+    //Gameobject used to get hit colour
+    public int NewHit(Vector3 pos, Quaternion rot, GameObject other)
     {
-        var c = PhotonNetwork.Instantiate("LevelHit", hit.point, hit.transform.rotation, 0);
+        var c = PhotonNetwork.Instantiate("LevelHit", pos, rot, 0);
         hitList.Add(c);
 
         c.transform.parent = other.transform; //Make child

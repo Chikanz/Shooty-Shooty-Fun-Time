@@ -22,7 +22,8 @@ public class Shopper : MonoBehaviour
     public float searchRadiusSize = 16;
     public float WanderDistance = 20;
     private Quaternion assRottaion;     //Rotation when knocked over on ass
-    
+    private Vector3 assPos;     //Rotation when knocked over on ass
+
     private float timeToStand;
 
     void Start()
@@ -96,36 +97,59 @@ public class Shopper : MonoBehaviour
         if (state == eShopper.HURT)
         {
             //Use time to make sure it's not triggered instantly
-            timeToStand += Time.deltaTime;
-            if (RB.velocity.magnitude < 0.5f && timeToStand > 1)
+            
+            if (RB.velocity.magnitude < 0.5f)
             {
-                state = eShopper.STANDUP;
-                assRottaion = transform.rotation;
-                timeToStand = 0;
+                timeToStand += Time.deltaTime;
+
+                if (timeToStand > 2)
+                {
+                    state = eShopper.STANDUP;
+                    assRottaion = transform.rotation;
+                    assPos = transform.position;
+                    timeToStand = 0;
+                }
             }
         }
 
         if (state == eShopper.STANDUP)
         {
-            timeToStand += (Time.deltaTime * 0.3f);
+            timeToStand += (Time.deltaTime * 0.5f);
+            var standpos = new Vector3(assPos.x, assPos.y + 1.5f, assPos.z);
             transform.rotation = Quaternion.Lerp(assRottaion, Quaternion.identity, timeToStand);
+            transform.position = Vector3.Lerp(assPos, standpos, timeToStand);
 
-            if(timeToStand >= 1)
+            if (timeToStand >= 1)
             {
-                //Check if on nav mesh
-                NavMeshHit hit;
-                if(NavMesh.SamplePosition(transform.position, out hit, 1f, 1))
+                GetComponent<MeshCollider>().enabled = true;
+                HurtMode(false);
+                timeToStand = 0;
+
+                //Check if on mesh
+                if (!agent.isOnNavMesh)
                 {
-                    HurtMode(false);
-                    timeToStand = 0;
-                    state = eShopper.WANDERING;
+                    RB.useGravity = true;
+                    GetComponent<MeshCollider>().enabled = false;
                 }
                 else
                 {
-                    GetComponent<BoxCollider>().enabled = false;
-                    
+                    state = eShopper.WANDERING;
                 }
-                
+
+                ////Check if on nav mesh
+                //NavMeshHit hit;
+                //if(NavMesh.SamplePosition(transform.position, out hit, 1f, 1))
+                //{
+                //    HurtMode(false);
+                //    timeToStand = 0;
+                //    state = eShopper.WANDERING;
+                //}
+                //else //Kill self if not on mesh
+                //{
+                //    GetComponent<MeshCollider>().enabled = false;
+                //    HurtMode(true);
+                //}
+
             }
         }
     }
@@ -146,32 +170,32 @@ public class Shopper : MonoBehaviour
         RB.isKinematic = !b;
     }
 
-    //Make RPC wrapper
-    void punch()
+    void shoot(Vector3 facing, int force)
     {
         HurtMode(true);
         state = eShopper.HURT;
-        RB.AddForce(transform.up * 1000);
-    }
-
-    void shoot(Vector3 facing)
-    {
-        HurtMode(true);
-        state = eShopper.HURT;
-        RB.AddForce(facing * 1000);
+        RB.AddForce(facing * force);
+        timeToStand = 0;
     }
 
     [PunRPC]
     void Shoot(Vector3 facing)
     {
         if(PhotonNetwork.isMasterClient)
-            shoot(facing);
+            shoot(facing,1000);
     }
 
     [PunRPC]
     void Punch()
     {
         if (PhotonNetwork.isMasterClient)
-            punch();
+            shoot(transform.up, 1000);
+    }
+
+    [PunRPC]
+    void RagDoll()
+    {
+        if (PhotonNetwork.isMasterClient)
+            shoot(Vector3.zero,0);
     }
 }

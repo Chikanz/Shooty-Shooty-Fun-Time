@@ -21,6 +21,8 @@ public class StuffGunObject : MonoBehaviour
     private float timeAlive;
     private bool ded;
 
+    private BulletManager BM;
+
     private void Start()
     {
         AS = GetComponent<AudioSource>();
@@ -30,6 +32,7 @@ public class StuffGunObject : MonoBehaviour
         RB = GetComponent<Rigidbody>();
         playOnAwakeDelay = Random.Range(0, 0.1f);
         Destroy(gameObject, lifetime + 2);
+        BM = GameObject.Find("Bullet Manager").GetComponent<BulletManager>();
     }
 
     private void Update()
@@ -86,6 +89,13 @@ public class StuffGunObject : MonoBehaviour
 
     public void OnCollisionEnter(Collision c)
     {
+        if(NM.explosions && c.gameObject.tag != "Stuff" && c.gameObject.tag != "Player")
+        {
+            int id = BM.NewHit(c.contacts[0].point,Quaternion.identity, c.gameObject);
+            BM.CreateNextHit(id);
+            Destroy(gameObject);
+        }
+
         if (NM == null)
             NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
 
