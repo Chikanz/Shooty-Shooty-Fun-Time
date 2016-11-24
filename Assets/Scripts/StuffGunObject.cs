@@ -91,6 +91,7 @@ public class StuffGunObject : MonoBehaviour
     {
         if(NM.explosions && c.gameObject.tag != "Stuff" && c.gameObject.tag != "Player")
         {
+            //get pixel col
             int id = BM.NewHit(c.contacts[0].point,Quaternion.identity, c.gameObject);
             BM.CreateNextHit(id);
             Destroy(gameObject);

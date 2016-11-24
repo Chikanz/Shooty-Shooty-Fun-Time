@@ -43,13 +43,13 @@ public class BulletManager : MonoBehaviour
     public int NewHit(Vector3 pos, Quaternion rot, GameObject other)
     {
         var c = PhotonNetwork.Instantiate("LevelHit", pos, rot, 0);
-        hitList.Add(c);
+        hitList.Add(c); 
 
         c.transform.parent = other.transform; //Make child
 
         if (other.GetComponent<Renderer>() != null)
         {
-            c.GetComponent<Impact>().otherCol = other.GetComponent<Renderer>().material.color * 0.5f;
+            c.GetComponent<Impact>().otherCol = other.GetComponent<Renderer>().material.color * 0.5f;            
         }
 
         c.transform.name = "Impact id" + Random.Range(0, 999);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityStandardAssets.Characters.FirstPerson;
 using UnityStandardAssets.CrossPlatformInput;
@@ -115,6 +116,7 @@ public class FirstPersonController : MonoBehaviour
     public float bouncePadForce;
     public bool bounced = false;
 
+    //Double jump stuff
     private bool doubleJump;
     private bool touchingDoubleJump;
     private bool canDoubleJump = true;
@@ -125,10 +127,19 @@ public class FirstPersonController : MonoBehaviour
     public bool Mlook = true;
     public bool canMove = true;
 
+    //Explosion Stuff
     public bool explosionMode;
     private Vector3 landed;
     public float stopMagnitude = 10;
     private float explosionTimer = 0;
+
+    //Screen shake stuff
+    public float shakeDuration = 0.5f;
+    public float shakeSpeed = 1.0f;
+    public float shakeMagnitude = 0.1f;
+
+    Vector3 CamShake = Vector3.zero;
+
 
     // Use this for initialization
     private void Start()
@@ -159,13 +170,14 @@ public class FirstPersonController : MonoBehaviour
             m_Jump = Input.GetButtonDown("Jump");
         }
 
+        //Double jump
         if (touchingDoubleJump && canDoubleJump && Input.GetButtonDown("Jump"))
         {
             doubleJump = true;
             canDoubleJump = false;
         }
 
-        //Gorunded stuff
+        //Grounded stuff
         if (!m_PreviouslyGrounded && (m_CharacterController.isGrounded))
         {
             StartCoroutine(m_JumpBob.DoBobCycle());
@@ -379,7 +391,7 @@ public class FirstPersonController : MonoBehaviour
 
     private void UpdateCameraPosition(float speed)
     {
-        Vector3 newCameraPosition;
+        Vector3 newCP;
         if (!m_UseHeadBob)
         {
             return;
@@ -389,22 +401,69 @@ public class FirstPersonController : MonoBehaviour
             m_Camera.transform.localPosition =
                 m_HeadBob.DoHeadBob(m_CharacterController.velocity.magnitude +
                                   (speed * (m_IsWalking ? 1f : m_RunstepLenghten)));
-            newCameraPosition = m_Camera.transform.localPosition;
-            newCameraPosition.y = m_Camera.transform.localPosition.y - m_JumpBob.Offset();
+            newCP = m_Camera.transform.localPosition;
+            newCP.y = m_Camera.transform.localPosition.y - m_JumpBob.Offset();
         }
         else
         {
-            newCameraPosition = m_Camera.transform.localPosition;
-            newCameraPosition.y = m_OriginalCameraPosition.y - m_JumpBob.Offset();
+            newCP = m_Camera.transform.localPosition;
+            newCP.y = m_OriginalCameraPosition.y - m_JumpBob.Offset();
         }
 
-        m_Camera.transform.localPosition = newCameraPosition;
+        m_Camera.transform.localPosition = newCP;         //+ CamShake
     }
 
+    //Zac's Kick back 
     public void KickCam()
     {
         CamKick += Kick;
     }
+
+    public void PlayShake()
+    {
+        StopAllCoroutines();
+        StartCoroutine("Shake");
+    }
+
+    IEnumerator Shake()
+    {
+        float elapsed = 0.0f;
+        float randomStart = UnityEngine.Random.Range(-1000.0f, 1000.0f);
+        Vector3 ogCamPos = m_Camera.transform.localPosition;
+
+        while (elapsed < shakeDuration)
+        {
+            elapsed += Time.deltaTime;
+
+            float percentComplete = elapsed / shakeDuration;
+
+            // We want to reduce the shake from full power to 0 starting half way through
+            float damper = 1.0f - Mathf.Clamp(2.0f * percentComplete - 1.0f, 0.0f, 1.0f);
+
+            // Calculate the noise parameter starting randomly and going as fast as speed allows
+            float alpha = randomStart + shakeSpeed * percentComplete;
+
+            // map noise to [-1, 1]
+            //float x = Util.Noise.GetNoise(alpha, 0.0f, 0.0f) * 2.0f - 1.0f;
+            //float y = Util.Noise.GetNoise(0.0f, alpha, 0.0f) * 2.0f - 1.0f;
+
+            float x = Mathf.PerlinNoise(alpha, 0) * 2.0f - 1.0f;
+            float y = Mathf.PerlinNoise(0, alpha) * 2.0f - 1.0f;
+
+            x *= shakeMagnitude * damper;
+            y *= shakeMagnitude * damper;
+
+            m_Camera.transform.localPosition = new Vector3(x, y, ogCamPos.z); 
+            //CamShake.x = x;
+            //CamShake.y = y;
+
+            yield return null;
+        }
+
+        //m_Camera.transform.localPosition = ogCamPos;
+        CamShake = Vector3.zero;
+    }
+
 
     private void GetInput(out float speed)
     {

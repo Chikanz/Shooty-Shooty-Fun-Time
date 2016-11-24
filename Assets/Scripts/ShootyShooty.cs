@@ -163,6 +163,7 @@ public class ShootyShooty : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Mouse1))
         {
             PunchAnim.SetTrigger("Punch");
+            FPC.PlayShake();
         }
 
         //SlowMo Stuff

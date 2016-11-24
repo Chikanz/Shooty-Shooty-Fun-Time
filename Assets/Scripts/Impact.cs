@@ -34,7 +34,7 @@ public class Impact : MonoBehaviour
         //Splosions
         if (NM.explosions)
         {
-            Destroy(gameObject, 1);
+            //Destroy(gameObject, 1);
             Vector3 explosionPos = transform.position;
             Collider[] colliders = Physics.OverlapSphere(explosionPos, radius);
             foreach (Collider hit in colliders)
@@ -56,15 +56,23 @@ public class Impact : MonoBehaviour
             splodeySphere = transform.GetChild(0);
             splodeySphere.gameObject.SetActive(true);
             splodeySphere.localScale = new Vector3(radius, radius, radius);
+
+            //GetComponent<ParticleSystem>().Stop();
+            var particlesys = transform.GetChild(1);
+            particlesys.gameObject.SetActive(true);
+            GetComponent<Renderer>().material.color = otherCol;
+            particlesys.GetComponent<ParticleSystemRenderer>().material.color = otherCol;
         }
         else //Normal impact
         {
+            var particlesys = transform.GetChild(2);
             GetComponent<Renderer>().material.color = otherCol;
-            GetComponent<ParticleSystemRenderer>().material.color = otherCol;
+            particlesys.GetComponent<ParticleSystemRenderer>().material.color = otherCol;
+            particlesys.gameObject.SetActive(true);
 
-            GetComponent<ParticleSystem>().Play();
             if (!NM.godBullets)
                 GetComponent<MeshRenderer>().enabled = true;
+//            GetComponent<ParticleSystem>().Play();
         }
     }
 }

@@ -133,6 +133,7 @@
      <Compile Include="Assets\Scripts\NetworkMan.cs" />
      <Compile Include="Assets\Scripts\ShootyShooty.cs" />
      <Compile Include="Assets\Scripts\Shopper.cs" />
+     <Compile Include="Assets\Scripts\Splosion.cs" />
      <Compile Include="Assets\Scripts\StopSignMan.cs" />
      <Compile Include="Assets\Scripts\StuffGunObject.cs" />
      <Compile Include="Assets\Scripts\UIManager.cs" />
