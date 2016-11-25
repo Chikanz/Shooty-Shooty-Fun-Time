@@ -11,6 +11,9 @@ public class bulletScript : MonoBehaviour
     private NetworkMan NM;
     private ShootyShooty SS;
     public bool impact = true;
+    bool isRocket = false;
+
+    public GameObject smokeParent;
 
     private float detectDistance;
 
@@ -19,7 +22,15 @@ public class bulletScript : MonoBehaviour
     {
         BM = GameObject.Find("Bullet Manager").GetComponent<BulletManager>();
         NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+
         SS = NM.SS;
+
+        if (NM.explosions)
+        {
+            isRocket = true;
+            transform.GetChild(0).gameObject.SetActive(false);
+            transform.GetChild(1).gameObject.SetActive(true);
+        }
     }
 
     // Update is called once per frame
@@ -27,17 +38,15 @@ public class bulletScript : MonoBehaviour
     {
         //MATH MAGIC
         //http://forum.unity3d.com/threads/how-do-i-detect-if-an-object-is-in-front-of-another-object.53188/
-        if (impact)
+
+        Vector3 heading = transform.position - hitPos.position;
+        float dot = Vector3.Dot(heading, hitPos.forward);
+        //
+        if (dot < 0)
         {
-            Vector3 heading = transform.position - hitPos.position;
-            float dot = Vector3.Dot(heading, hitPos.forward);
-            //
-            if (dot < 0) //If behind
-            {
-                //Debug.Log("dotted");
+            if (impact)
                 BM.CreateNextHit(id);
-                Destroy(gameObject);
-            }
+            Die();
         }
     }
 
@@ -53,7 +62,7 @@ public class bulletScript : MonoBehaviour
         if (other.gameObject.layer == 11)
         {
             if (SS.slowMoInUse)
-                other.transform.GetComponent<Rigidbody>().AddForce(transform.forward * SS.ShootyBallForce);
+                other.transform.GetComponent<Rigidbody>().AddForce(transform.forward*SS.ShootyBallForce);
             return;
         }
 
@@ -62,12 +71,37 @@ public class bulletScript : MonoBehaviour
             BM.CreateNextHit(id);
         }
 
-        Destroy(gameObject);
+        Die();
+        //Destroy(gameObject);
         //Debug.Log("collided");
     }
 
     public void SetHitPos(Transform hp)
     {
         hitPos = hp;
+    }
+
+    public void Die()
+    {
+        //Destroy(gameObject);
+        //return;
+
+        if (NM == null)
+            NM = GameObject.Find("NetworkManager").GetComponent<NetworkMan>();
+
+        if (!isRocket)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            var ps = GetComponentInChildren<ParticleSystem>();
+            ps.Stop();
+            Transform PE = ps.transform;
+            Debug.Assert(PE != null);
+            PE.parent = NM.transform;
+            PE.localScale = new Vector3(1, 1, 1);
+            Destroy(gameObject);
+        }
     }
 }

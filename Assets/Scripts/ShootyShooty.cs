@@ -231,9 +231,9 @@ public class ShootyShooty : NetworkBehaviour
                 if (Physics.Raycast(transform.position, spray, out hit, 300f, ~((1<<8) | (1<<2)) ))
                 {
                     //Bullet Instance
-                    var bullet = Instantiate(
-                        Bullet, Gunlight.transform.position,
-                        Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0)) as GameObject;
+                    var bullet = PhotonNetwork.Instantiate(
+                        "Bullet", Gunlight.transform.position,
+                        Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0),0) as GameObject;
                     var BS = bullet.GetComponent<bulletScript>();
 
                     //Link Bullet and impact
@@ -262,8 +262,8 @@ public class ShootyShooty : NetworkBehaviour
                     bullet.GetComponent<Rigidbody>().AddForce(direction * bulletSpeed);
 
                     //Insta explosion for close hits
-                    if (NM.explosions && distance < 10)
-                        BM.CreateNextHit(BS.id);
+                    //if (NM.explosions && distance < 10)
+                        //BM.CreateNextHit(BS.id);
 
                     //ShootyBall
                     if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
