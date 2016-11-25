@@ -55,7 +55,7 @@ public class Impact : MonoBehaviour
             }
             splodeySphere = transform.GetChild(0);
             splodeySphere.gameObject.SetActive(true);
-            splodeySphere.localScale = new Vector3(radius, radius, radius);
+            splodeySphere.localScale = new Vector3(radius, radius, radius)/2.3f;
 
             //GetComponent<ParticleSystem>().Stop();
             var particlesys = transform.GetChild(1);
