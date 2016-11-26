@@ -13,7 +13,7 @@ public class ShootyShooty : NetworkBehaviour
 
     public GameObject pokeBall;
 
-    public GameObject Bullet;    
+    public GameObject Bullet;
 
     public AudioSource gunSound;
     public GameObject casing;
@@ -134,7 +134,7 @@ public class ShootyShooty : NetworkBehaviour
             && inClip > 0
             && FPC.m_IsWalking
             && shootCoolDownTimer <= 0
-            )
+        )
         {
             Playerpv.RPC("PewPew", PhotonTargets.Others, null);
             MakeCasing();
@@ -169,11 +169,11 @@ public class ShootyShooty : NetworkBehaviour
         //SlowMo Stuff
         if (NM.slowMo && !slowMoInUse && slowMoJuice < slowMoMax)
         {
-            slowMoJuice += Time.deltaTime * 0.5f;
+            slowMoJuice += Time.deltaTime*0.5f;
         }
         else if (slowMoInUse)
         {
-            slowMoJuice -= Time.deltaTime * 2;
+            slowMoJuice -= Time.deltaTime*2;
         }
 
         if (slowMoJuice <= 0)
@@ -181,7 +181,7 @@ public class ShootyShooty : NetworkBehaviour
             slowMoJuice = 0;
             slowMoInUse = false;
             NM.pv.RPC(PhotonNetwork.isMasterClient ? "P1SlowMoSet" : "P2SlowMoSet",
-                    PhotonTargets.All, false);
+                PhotonTargets.All, false);
         }
 
         if (NM.slowMo && Input.GetKeyDown(KeyCode.LeftShift) && slowMoJuice > 0)
@@ -228,17 +228,20 @@ public class ShootyShooty : NetworkBehaviour
 
                 //RAYCAST BIG DADDY
                 //Layer mask guide: ~ = not layer 8
-                if (Physics.Raycast(transform.position, spray, out hit, 300f, ~((1<<8) | (1<<2)) ))
+                if (Physics.Raycast(transform.position, spray, out hit, 300f, ~((1 << 8) | (1 << 2))))
                 {
                     //Bullet Instance
                     var bullet = PhotonNetwork.Instantiate(
                         "Bullet", Gunlight.transform.position,
-                        Gunlight.transform.rotation * Quaternion.Euler(-90, 0, 0),0) as GameObject;
+                        Gunlight.transform.rotation*Quaternion.Euler(-90, 0, 0), 0) as GameObject;
                     var BS = bullet.GetComponent<bulletScript>();
 
                     //Link Bullet and impact
-                    BS.SetHitPos(hit.transform);
-                    BS.id = BM.NewHit(hit.point, hit.transform.rotation, hit.transform.gameObject);
+                    var targetRotation = Quaternion.LookRotation(transform.position - hit.transform.position);
+                    BS.id = BM.NewHit(hit.point, targetRotation, hit.transform.gameObject);
+
+                    //Link to impact transform instead of hit 
+                    BS.SetHitPos(BM.GetBulletReference(BS.id));
 
                     //Turn off render for player + shootyball
                     if (hit.transform.tag == "Player" ||
@@ -256,21 +259,21 @@ public class ShootyShooty : NetworkBehaviour
                     //(from https://docs.unity3d.com/Manual/DirectionDistanceFromOneObjectToAnother.html)
                     var heading = hit.point - Gunlight.transform.position;
                     var distance = heading.magnitude;
-                    var direction = heading / distance; // This is now the normalized direction.
+                    var direction = heading/distance; // This is now the normalized direction.
 
                     //Shoot Bullet in direction of hit
-                    bullet.GetComponent<Rigidbody>().AddForce(direction * bulletSpeed);
+                    bullet.GetComponent<Rigidbody>().AddForce(direction*bulletSpeed);
 
                     //Insta explosion for close hits
                     //if (NM.explosions && distance < 10)
-                        //BM.CreateNextHit(BS.id);
+                    //BM.CreateNextHit(BS.id);
 
                     //ShootyBall
                     if (hit.transform.gameObject.layer == 11 && !slowMoInUse)
                     {
                         hit.transform.GetComponent<PhotonView>().RequestOwnership();
                         hit.transform.GetComponent<Rigidbody>()
-                            .AddForceAtPosition(transform.forward * ShootyBallForce, hit.point);
+                            .AddForceAtPosition(transform.forward*ShootyBallForce, hit.point);
                     }
 
                     //Get shot
@@ -279,7 +282,7 @@ public class ShootyShooty : NetworkBehaviour
                     {
                         hit.transform.GetComponent<PhotonView>()
                             .RPC("GotShot", PhotonTargets.All,
-                                hit.collider.name == "Head" ? bulletDamage * 2 : bulletDamage, hit.transform.position);
+                                hit.collider.name == "Head" ? bulletDamage*2 : bulletDamage, hit.transform.position);
 
                         hit.transform.GetComponent<PhotonView>().RPC("PlayHurt", PhotonTargets.Others, null);
 
@@ -297,7 +300,7 @@ public class ShootyShooty : NetworkBehaviour
                     }
                     else if (hit.transform.tag == "Casing")
                     {
-                        hit.transform.GetComponent<Rigidbody>().AddForce(200 * transform.forward);
+                        hit.transform.GetComponent<Rigidbody>().AddForce(200*transform.forward);
                         BS.impact = false;
                     }
                     else if (NM.godBullets)
@@ -308,20 +311,22 @@ public class ShootyShooty : NetworkBehaviour
                         else
                             Debug.Log("Couldn't find that item!" + hit.transform.gameObject.ToString());
                     }
-                    else if(hit.transform.GetComponent<Rigidbody>()) //Generic physics object
+                    else if (hit.transform.GetComponent<Rigidbody>()) //Generic physics object
                     {
                         if (hit.transform.GetComponent<PhotonView>())
                         {
                             hit.transform.GetComponent<PhotonView>().RequestOwnership();
 
-                            if(hit.transform.GetComponent<PhotonView>().isMine)
+                            if (hit.transform.GetComponent<PhotonView>().isMine)
                             {
-                                hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 3000,hit.point);
+                                hit.transform.GetComponent<Rigidbody>()
+                                    .AddForceAtPosition(transform.forward*3000, hit.point);
                             }
                         }
                         else
                         {
-                            hit.transform.GetComponent<Rigidbody>().AddForceAtPosition(transform.forward * 3000, hit.point);
+                            hit.transform.GetComponent<Rigidbody>()
+                                .AddForceAtPosition(transform.forward*3000, hit.point);
                         }
                     }
                 }
@@ -356,11 +361,11 @@ public class ShootyShooty : NetworkBehaviour
                 else
                 {
                     pet = PhotonNetwork.Instantiate(stuffString, Gunlight.transform.position,
-                       Random.rotation, 0);
-                    pet.GetComponent<Rigidbody>().AddTorque(transform.up * 100);
+                        Random.rotation, 0);
+                    pet.GetComponent<Rigidbody>().AddTorque(transform.up*100);
                 }
 
-                pet.GetComponent<Rigidbody>().AddForce(spray * StuffGunForce);
+                pet.GetComponent<Rigidbody>().AddForce(spray*StuffGunForce);
                 BM.NewPet(pet);
             }
         }
@@ -387,7 +392,7 @@ public class ShootyShooty : NetworkBehaviour
         var c = Instantiate(casing, casingSpawn.position, Quaternion.identity) as GameObject;
         Casings.Add(c);
 
-        Vector3 force = transform.right * 200;
+        Vector3 force = transform.right*200;
         force.x += Random.Range(-50, 50);
         c.GetComponent<Rigidbody>().AddForce(force);
 
@@ -422,7 +427,7 @@ public class ShootyShooty : NetworkBehaviour
     {
         float oldRange = (OldMax - OldMin);
         float newRange = (NewMax - NewMin);
-        float newValue = (((OldValue - OldMin) * newRange) / oldRange) + NewMin;
+        float newValue = (((OldValue - OldMin)*newRange)/oldRange) + NewMin;
 
         return (newValue);
     }
@@ -454,14 +459,14 @@ public class ShootyShooty : NetworkBehaviour
 
         //Apply accuracy
         if (inac)
-            moveInac += (maxInnac / 4);
+            moveInac += (maxInnac/4);
         else
-            moveInac -= (maxInnac / 4);
+            moveInac -= (maxInnac/4);
 
         //Recoil Cooldown
         if (shootInnac > 0.0f)
         {
-            shootInnac -= (inacDecayRate * Time.deltaTime);
+            shootInnac -= (inacDecayRate*Time.deltaTime);
         }
 
         CHPlacement = Map(0.0f, maxInnac, 1, 0, inaccuracy);

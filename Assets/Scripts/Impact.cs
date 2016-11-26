@@ -34,6 +34,7 @@ public class Impact : MonoBehaviour
         //Splosions
         if (NM.explosions)
         {
+            transform.rotation = Quaternion.identity;
             //Destroy(gameObject, 1);
             Vector3 explosionPos = transform.position;
             Collider[] colliders = Physics.OverlapSphere(explosionPos, radius);
@@ -46,7 +47,7 @@ public class Impact : MonoBehaviour
 
                 if (hit.transform.tag == "Shopper")
                 {
-                    hit.GetComponentInParent<PhotonView>().RPC("RagDoll", PhotonTargets.All,null);
+                    hit.GetComponentInParent<PhotonView>().RPC("RagDoll", PhotonTargets.All, null);
                 }
 
                 Rigidbody rb = hit.GetComponentInParent<Rigidbody>();

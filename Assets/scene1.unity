@@ -692,6 +692,14 @@ Prefab:
       propertyPath: instantiationId
       value: 11
       objectReference: {fileID: 0}
+    - target: {fileID: 5478438, guid: 39c9cbab3d519604d9c8898a049afcee, type: 2}
+      propertyPath: m_Interpolate
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5478438, guid: 39c9cbab3d519604d9c8898a049afcee, type: 2}
+      propertyPath: m_CollisionDetection
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 39c9cbab3d519604d9c8898a049afcee, type: 2}
   m_IsPrefabParent: 0
@@ -62492,7 +62500,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PetMax: 10
-  maxImpacts: 100
+  maxImpacts: 20
 --- !u!4 &1647473452
 Transform:
   m_ObjectHideFlags: 0

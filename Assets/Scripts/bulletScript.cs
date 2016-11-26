@@ -5,7 +5,7 @@ using UnityEngine;
 public class bulletScript : MonoBehaviour
 {
     public int id;
-    public Transform hitPos;
+    public Transform hitPos; //Impact hit
 
     private BulletManager BM;
     private NetworkMan NM;
@@ -52,6 +52,8 @@ public class bulletScript : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
+        return;
+
         if (other.tag == "Bullet")
             return;
 
